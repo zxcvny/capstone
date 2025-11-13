@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 from app.models.user import User
 from app.models.social_account import SocialAccount, AuthProvider
 from app.models.refresh_token import RefreshToken
+from app.schemas.user import UserUpdate
 from app.core.config import settings
 from app.core.security.hashing import hash_password
 
@@ -112,6 +113,52 @@ class UserService:
         # 이메일이 이미 존재하면 계정 통합 로직 추가(나중에)
         
         user = await self.create_user_social(db, provider, provider_user_id, name, email, phone_number)
+        return user
+    
+    async def update_user(
+        self, 
+        db: AsyncSession, 
+        user: User, 
+        user_in: UserUpdate
+    ) -> User:
+        """(일반 사용자) 사용자 정보 업데이트"""
+        
+        if user_in.username:
+            # 유저이름 중복 확인
+            existing_user = await self.get_user_by_username_or_email(db, user_in.username)
+            if existing_user and existing_user.user_id != user.user_id:
+                raise ValueError("이미 사용 중인 유저이름입니다.")
+            user.username = user_in.username
+        
+        if user_in.password:
+            user.hashed_password = hash_password(user_in.password)
+        
+        user.updated_at = datetime.now(timezone.utc)
+        
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+        
+        return user
+
+    async def deactivate_user(
+        self,
+        db: AsyncSession,
+        user: User
+    ) -> User:
+        """회원 비활성화 (Soft Delete)"""
+        user.is_active = False
+        user.updated_at = datetime.now(timezone.utc)
+        
+        # (선택) 보안을 위해 Refresh Token도 모두 폐기
+        for token in user.refresh_tokens:
+            token.is_revoked = True
+            db.add(token)
+
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+        
         return user
     
     async def save_refresh_token(

@@ -2,8 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.lifespan import lifespan
-from app.routers import ws_router
-from app.routers.auth import user_default, user_social, token
+from app.routers import ws_router, users
+from app.routers.auth import user_general, user_social, token
 
 app = FastAPI(lifespan=lifespan)
 
@@ -16,10 +16,11 @@ app.add_middleware(
 )
 
 # 라우터 연결
-app.include_router(user_default.router)
+app.include_router(user_general.router)
 app.include_router(user_social.router)
 app.include_router(token.router)
 app.include_router(ws_router.router)
+app.include_router(users.router)
 
 @app.get("/")
 def read_root():

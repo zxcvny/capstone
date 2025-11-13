@@ -1,5 +1,5 @@
 import uuid
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 class UserCreate(BaseModel):
     username: str
@@ -16,3 +16,16 @@ class UserPublic(BaseModel):
 
     class Config:
         from_attributes = True
+
+class UserUpdate(BaseModel):
+    """
+    일반 사용자 정보 수정 시 받을 데이터
+    """
+    username: str | None = Field(None)
+    password: str | None = Field(None)
+
+class MessageResponse(BaseModel):
+    """
+    간단한 성공/오류 메시지 반환용
+    """
+    message: str
