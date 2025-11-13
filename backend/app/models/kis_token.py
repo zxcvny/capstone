@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, DateTime
 from sqlalchemy.sql import func
-from datetime import datetime, timezone
+
 from app.database import Base
 
 class KISToken(Base):

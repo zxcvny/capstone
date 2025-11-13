@@ -1,3 +1,4 @@
+import logging
 import json
 import websockets
 import asyncio
@@ -5,7 +6,6 @@ import asyncio
 from app.services.kis_auth import kis_auth
 from app.services.kis_data import kis_data
 from app.core.config import settings
-import logging
 
 logger = logging.getLogger(__name__)
 

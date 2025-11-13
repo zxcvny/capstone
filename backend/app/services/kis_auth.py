@@ -1,13 +1,12 @@
+import logging
 import httpx
-import time
 from datetime import datetime, timezone, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from app.core.config import settings
 from app.database import AsyncSessionLocal
-from app.models.kis_token_model import KISToken
-import logging
+from app.models.kis_token import KISToken
 
 logger = logging.getLogger(__name__)
 

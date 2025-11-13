@@ -1,104 +1,20 @@
-from fastapi import APIRouter, Query, Depends, HTTPException, Cookie, status
-from fastapi.responses import RedirectResponse, JSONResponse
-from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.ext.asyncio import AsyncSession
+import logging
 import httpx
+from fastapi import APIRouter, Query, Depends
+from fastapi.responses import RedirectResponse, JSONResponse
+from sqlalchemy.ext.asyncio import AsyncSession
+
 
 from app.core.config import settings
 from app.database import get_db
-from app.models.user_model import AuthProvider
-from app.schemas.user_schemas import UserCreate, UserPublic
+from app.models.social_account import AuthProvider
+from app.schemas.token import AccessTokenResponse
 from app.services.user_services import user_service
-from app.core.security import create_access_token, create_refresh_token, AccessTokenResponse, verify_password
-import logging
+from app.core.security.token import create_access_token, create_refresh_token
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix='/auth', tags=['auth'])
-
-@router.post("/register", status_code=status.HTTP_201_CREATED, response_model=UserPublic)
-async def register_user(
-    user_in: UserCreate,
-    db: AsyncSession = Depends(get_db)
-):
-    """
-    일반 회원가입
-    """
-    # 이메일 또는 유저이름 중복 확인
-    existing_user = await user_service.get_user_by_username_or_email(db, user_in.username)
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="이미 사용 중인 유저이름입니다."
-        )
-    
-    existing_user = await user_service.get_user_by_username_or_email(db, user_in.email)
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="이미 사용 중인 이메일입니다."
-        )
-    
-    try:
-        user = await user_service.create_user_general(
-            db=db,
-            username=user_in.username,
-            email=user_in.email,
-            password=user_in.password,
-            name=user_in.name,
-            phone_number=user_in.phone_number
-        )
-        return user
-    except Exception as e:
-        logger.error(f"⛔ 회원가입 중 예외 발생: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="회원가입 중 오류가 발생했습니다."
-        )
-
-@router.post("/login", response_model=AccessTokenResponse)
-async def login_for_access_token(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: AsyncSession = Depends(get_db)
-):
-    """
-    일반 로그인 (유저이름 또는 이메일 사용)
-    """
-    user = await user_service.get_user_by_username_or_email(db, form_data.username)
-    
-    if not user or not user.hashed_password or not verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="유저이름 또는 비밀번호가 잘못되었습니다.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    app_access_token = create_access_token(user_id=user.user_id)
-    app_refresh_token = create_refresh_token()
-
-    await user_service.save_refresh_token(
-        db=db,
-        user_id=user.user_id,
-        token=app_refresh_token,
-    )
-
-    response_content = {
-        "access_token": app_access_token,
-        "token_type": "bearer"
-    }
-
-    response = JSONResponse(content=response_content)
-
-    response.set_cookie(
-        key="refresh_token",
-        value=app_refresh_token,
-        httponly=True,
-        secure=True,
-        samesite="lax",
-        path="/auth/token/refresh"
-    )
-
-    return response
+router = APIRouter(prefix='/auth', tags=['User-Social'])
 
 @router.get('/kakao/login')
 async def kakao_login():
@@ -315,59 +231,3 @@ async def google_callback(
         except Exception as e:
             logger.error(f"⛔ 구글 콜백 처리 중 예외 발생: {e}", exc_info=True)
             return JSONResponse(status_code=500, content={"error": "내부 서버 오류", "details": str(e)})
-        
-@router.post('/token/refresh', response_model=AccessTokenResponse)
-async def refresh_access_token(
-    refresh_token: str = Cookie(None), 
-    db: AsyncSession = Depends(get_db)
-):
-    if not refresh_token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Refresh token이 없습니다."
-        )
-
-    try:
-        user = await user_service.get_user_by_refresh_token(db, refresh_token)
-
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="유효하지 않거나 만료된 Refresh token입니다."
-            )
-
-        # 새 토큰 생성
-        app_access_token = create_access_token(user_id=user.user_id)
-        app_refresh_token = create_refresh_token()
-
-        # 새 Refresh Token을 DB에 저장
-        await user_service.save_refresh_token(
-            db=db,
-            user_id=user.user_id,
-            token=app_refresh_token,
-        )
-
-        response_content = {
-            "access_token": app_access_token,
-            "token_type": "bearer"
-        }
-        
-        response = JSONResponse(content=response_content)
-        
-        # 새 Refresh Token을 쿠키로 설정
-        response.set_cookie(
-            key="refresh_token",
-            value=app_refresh_token,
-            httponly=True,
-            secure=True,
-            samesite="lax",
-            path="/auth/token/refresh"
-        )
-        return response
-
-    except Exception as e:
-        logger.error(f"⛔ 토큰 재발급 중 예외 발생: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="토큰 재발급 중 오류 발생"
-        )

@@ -1,5 +1,5 @@
-from pydantic import BaseModel, EmailStr
 import uuid
+from pydantic import BaseModel, EmailStr
 
 class UserCreate(BaseModel):
     username: str

@@ -4,10 +4,11 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy import update 
 from datetime import datetime, timedelta, timezone
 
-from app.models.user_model import User, SocialAccount, AuthProvider, RefreshToken
-from app.schemas.user_schemas import UserUpdate
+from app.models.user import User
+from app.models.social_account import SocialAccount, AuthProvider
+from app.models.refresh_token import RefreshToken
 from app.core.config import settings
-from app.core.security import hash_password
+from app.core.security.hashing import hash_password
 
 import uuid
 
@@ -162,53 +163,5 @@ class UserService:
 
             return refresh_token_obj.user
         return None
-    
-    async def update_user(
-        self, 
-        db: AsyncSession, 
-        user: User,
-        user_in: UserUpdate
-    ) -> User:
-        """사용자 정보(이름, 이메일, 폰, 비밀번호) 업데이트"""
-        
-        update_data = user_in.model_dump(exclude_unset=True)
-
-        if "password" in update_data:
-            hashed_pass = hash_password(update_data["password"])
-            user.hashed_password = hashed_pass
-            del update_data["password"]
-        
-        for field, value in update_data.items():
-            setattr(user, field, value)
-            
-        db.add(user)
-        await db.commit()
-        await db.refresh(user)
-        return user
-
-    async def deactivate_user(
-        self, 
-        db: AsyncSession, 
-        user: User
-    ) -> None:
-        """
-        사용자 비활성화 (회원 탈퇴)
-        - is_active를 False로 설정
-        - 모든 Refresh Token을 폐기(revoke)
-        """
-        user.is_active = False
-        db.add(user)
-        
-        # 이 사용자의 모든 유효한 리프레시 토큰을 폐기
-        await db.execute(
-            update(RefreshToken)
-            .where(
-                RefreshToken.user_id == user.user_id,
-                RefreshToken.is_revoked == False
-            )
-            .values(is_revoked=True)
-        )
-        
-        await db.commit()
 
 user_service = UserService()
