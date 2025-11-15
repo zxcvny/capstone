@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import '../styles/Layout.css';
 import {
+    FaHome,
     FaChartBar,
     FaBullhorn,
     FaRobot,
@@ -8,6 +9,7 @@ import {
 } from 'react-icons/fa';
 
 const menuItems = [
+    { key: 'home', path: '/', name: '홈', icon: <FaHome /> },
     { key: 'market', path: '/market', name: '시장현황', icon: <FaChartBar /> },
     { key: 'signal', path: '/signal', name: '매매신호', icon: <FaBullhorn /> },
     { key: 'auto-trade', path: '/auto-trade', name: '자동매매', icon: <FaRobot /> },
