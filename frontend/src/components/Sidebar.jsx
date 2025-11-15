@@ -15,13 +15,13 @@ const menuItems = [
 
 function Sidebar({ isOpen, toggleSidebar }) {
     return(
-        <nav className={`isdebar ${isOpen ? 'open':'closed'}`}>
+        <nav className={`sidebar ${isOpen ? 'open':'closed'}`}>
             <button
              onClick={toggleSidebar}
              className='sidebar-toggle-btn'
              aria-label='Toggle sidebar'
             >
-                <span className={`icon-wrapper ${isOpen ? 'rotated': ''}`}><FaAngleDoubleRight /></span>
+                <span className={`tb-icon-wrapper ${isOpen ? 'rotated': ''}`}><FaAngleDoubleRight /></span>
             </button>
             <ul className="sidebar-menu">
                 {menuItems.map((item) => (
