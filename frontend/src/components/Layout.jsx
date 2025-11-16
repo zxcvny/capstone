@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar'
+import Header from './Header';
 import '../styles/Layout.css';
 
 function Layout() {
@@ -13,11 +14,14 @@ function Layout() {
     return(
         <div className="layout-container">
             <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-            <main className={`content-area ${isSidebarOpen ? 'sidebar-open':'sidebar-closed'}`}>
-                <div className="page-content">
-                    <Outlet />
-                </div>
-            </main>
+            <div className={`main-content-container ${isSidebarOpen ? 'sidebar-open':'sidebar-closed'}`}>
+                <Header />
+                <main className="content-area">
+                    <div className="page-content">
+                        <Outlet />
+                    </div>
+                </main>
+            </div>
         </div>
     )
 }
