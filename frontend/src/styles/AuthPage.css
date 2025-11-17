@@ -1,0 +1,182 @@
+/* 로고 */
+.mini-logo {
+    text-align: center;
+}
+
+.mini-logo img {
+    width: 70px;
+}
+
+.mini-logo:hover {
+    transform: scale(1.05);
+}
+
+/* 배경 */
+.auth-container {
+    width: 100%;
+    min-height: 100vh;
+    background: radial-gradient(circle at 20% 20%, #ff6347 0%, #2b0a45 40%, #0b0f29 100%);
+    background-attachment: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    padding: 40px 0;
+}
+
+.auth-container::before {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: url("https://www.transparenttextures.com/patterns/stardust.png");
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* 카드 */
+.auth-card {
+    width: 380px;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(14px);
+    border-radius: 20px;
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.15);
+    padding: 35px;
+    animation: slideUp 0.9s ease forwards;
+}
+
+/* 카드-제목 */
+.auth-title {
+    text-align: center;
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-shadow: 0 0 8px rgba(255, 180, 180, 0.6);
+}
+
+/* 카드-입력 그룹 */
+.auth-input-group input {
+    width: 100%;
+    padding: 13px 14px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    margin-bottom: 15px;
+    color: #fff;
+}
+
+.auth-input-group input::placeholder {
+    color: #cfcfcf;
+}
+
+.auth-input-group input:focus {
+    outline: none;
+    border-color: #ff826b;
+    box-shadow: 0 0 10px rgba(255, 126, 95, 0.7);
+}
+
+.login-options {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    font-size: 14px;
+}
+
+.remember-me {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.find-password {
+    color: #ff937a;
+}
+
+.find-password:hover {
+    text-decoration: underline;
+}
+
+.auth-submit-btn {
+    background: linear-gradient(135deg, #ff6b4a, #ff8364);
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    width: 100%;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+    box-shadow: 0 0 10px rgba(255, 130, 100, 0.6);
+}
+
+.auth-submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 18px rgba(255, 130, 100, 0.9);
+}
+
+/* 회원가입, 로그인 링크 */
+.signup-link, .login-link {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.signup-link a, .login-link a {
+    color: #ff937a;
+    margin-left: 5px;
+}
+
+/* 구분선 */
+.divider {
+    border: none;
+    height: 1px;
+    margin: 25px 0;
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* 소셜 로그인 버튼 */
+.social-login {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.social-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 15px;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.3s ease-in-out;
+}
+
+/* 카카오 */
+.social-button.kakao {
+    background: #fee500;
+    color: #3c1e1e;
+}
+
+.social-button.kakao:hover {
+    background: #fada00;
+}
+
+/* 구글 */
+.social-button.google {
+    background: #fff;
+    color: #000;
+}
+
+.social-button.google:hover {
+    background: #eaeaea;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+}

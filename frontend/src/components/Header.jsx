@@ -1,13 +1,13 @@
 import { Link } from 'react-router-dom';
 import { IoSearchOutline } from "react-icons/io5";
-import logo from '../assets/logo.png'
+import Logo from "./Logo";
 
 function Header() {
     return(
         <header className="header-container">
             <div className="header-content-wrapper">
                 <div className="header-logo">
-                    <a href="/"><img src={logo} alt="Zero to Mars Logo" /></a>
+                    <Logo />
                 </div>
                 <div className="header-search">
                     <form action="" className="search-form">
