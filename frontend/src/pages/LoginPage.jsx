@@ -20,8 +20,8 @@ function LoginPage() {
                         <input type="password" id="password" placeholder="비밀번호" required />
                     </div>
                     <div className="login-options">
-                        <label htmlFor="" className="remember-me">
-                            <input type="checkbox" /> 로그인유지
+                        <label htmlFor="remember-check" className="remember-me">
+                            <input type="checkbox" id="remember-check" /> 로그인유지
                         </label>
                         <Link to="/find-password" className="link-to find-password">비밀번호 찾기</Link>
                     </div>

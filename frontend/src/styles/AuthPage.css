@@ -36,7 +36,7 @@
 
 /* 카드 */
 .auth-card {
-    width: 380px;
+    width: 540px;
     background: rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(14px);
     border-radius: 20px;
@@ -55,13 +55,16 @@
 }
 
 /* 카드-입력 그룹 */
+.auth-input-group {
+    margin-bottom: 15px;
+}
+
 .auth-input-group input {
     width: 100%;
     padding: 13px 14px;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 10px;
-    margin-bottom: 15px;
     color: #fff;
 }
 
@@ -129,10 +132,24 @@
 
 /* 구분선 */
 .divider {
-    border: none;
-    height: 1px;
+    display: flex;
+    align-items: center;
     margin: 25px 0;
+    width: 100%;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
     background: rgba(255, 255, 255, 0.25);
+}
+
+.divider span {
+    padding: 0 10px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
 }
 
 /* 소셜 로그인 버튼 */
@@ -174,6 +191,112 @@
 
 .social-button.google:hover {
     background: #eaeaea;
+}
+
+/* 회원가입 */
+.auth-input-group.email {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.auth-input-group.email .email-id {
+    flex: 1;
+    min-width: 0;
+}
+
+.auth-input-group.email .email-at {
+    color: #cfcfcf;
+    flex-shrink: 0;
+}
+
+.auth-input-group.email .email-domain-wrapper {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    gap: 6px;
+}
+
+.auth-input-group select.email-domain {
+    width: 100%;
+    padding: 13px 14px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    color: #fff; /* 기본 글자색 */
+    font-size: 14px; 
+    cursor: pointer;
+    appearance: none; 
+    background-image: url('data:image/svg+xml;utf8,<svg fill="white" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 20px;
+}
+
+/* '선택'이 기본값일 때 (placeholder 색상) */
+.auth-input-group select.email-domain:invalid {
+    color: #cfcfcf;
+}
+.auth-input-group select.email-domain option {
+    background: #2b0a45;
+    color: #fff;
+}
+.auth-input-group select.email-domain:focus {
+    outline: none;
+    border-color: #ff826b;
+    box-shadow: 0 0 10px rgba(255, 126, 95, 0.7);
+}
+
+/* 전화번호, 인증번호 */
+.auth-input-group.phone-number {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.auth-input-group.phone-number input {
+    flex: 1;
+    text-align: center;
+    min-width: 0;
+    padding: 13px 2px;
+}
+.auth-input-group.phone-number span {
+    color: #cfcfcf;
+    flex-shrink: 0;
+}
+
+.auth-verification-btn {
+    flex-shrink: 0;
+    padding: 13px 15px;
+    border: none;
+    border-radius: 10px;
+    background: #ff826b;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+    white-space: nowrap; /* 줄바꿈 방지 */
+}
+.auth-verification-btn:hover {
+    background: #ff6b4a;
+}
+.auth-verification-btn:disabled {
+    background: #6c757d;
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* 인증번호 입력 (타이머) */
+.auth-input-group.verification-code {
+    position: relative;
+}
+.auth-input-group.verification-code .timer {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #ff937a;
+    font-size: 14px;
 }
 
 @keyframes slideUp {
