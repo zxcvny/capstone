@@ -103,7 +103,14 @@ function SignUpPage() {
                             </select>
                         </div>
                     </div>
-
+                    {/* 이름 */}
+                    <div className="auth-input-group">
+                        <input
+                         type="text"
+                         placeholder="이름"
+                         required
+                        />
+                    </div>
                     {/* 로그인 아이디 */}
                     <div className="auth-input-group">
                         <input type="text" placeholder="로그인 아이디" required />
