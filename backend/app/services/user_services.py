@@ -94,6 +94,25 @@ class UserService:
         await db.refresh(new_user)
         
         return new_user
+    
+    async def check_existence(
+            self,
+            db: AsyncSession,
+            field: str,
+            value: str
+    ) -> bool:
+        """실시간 중복 확인: 존재하면 True, 없으면 False"""
+        if field == "username":
+            query = select(User).where(User.username == value)
+        elif field == "email":
+            query = select(User).where(User.email == value)
+        elif field == "phone_number":
+            query = select(User).where(User.phone_number == value)
+        else:
+            raise ValueError("지원하지 않는 필드입니다.")
+        
+        result = await db.execute(query)
+        return result.scalars().first() is not None
 
     async def get_or_create_user_social(
         self, 
@@ -127,7 +146,7 @@ class UserService:
             # 유저이름 중복 확인
             existing_user = await self.get_user_by_username_or_email(db, user_in.username)
             if existing_user and existing_user.user_id != user.user_id:
-                raise ValueError("이미 사용 중인 유저이름입니다.")
+                raise ValueError("이미 사용 중인 아이디입니다.")
             user.username = user_in.username
         
         if user_in.password:

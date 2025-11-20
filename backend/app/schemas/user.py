@@ -29,3 +29,8 @@ class MessageResponse(BaseModel):
     간단한 성공/오류 메시지 반환용
     """
     message: str
+
+class CheckAvailabilityRequest(BaseModel):
+    """실시간 중복 확인 요청"""
+    field: str  # 'username', 'email', 'phone_number'
+    value: str

@@ -5,7 +5,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.schemas.user import UserCreate, UserPublic
+from app.schemas.user import UserCreate, UserPublic, CheckAvailabilityRequest
 from app.schemas.token import AccessTokenResponse
 from app.services.user_services import user_service
 from app.core.security.token import create_access_token, create_refresh_token
@@ -15,6 +15,36 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix='/auth', tags=['User-General'])
 
+@router.post("/check-availability")
+async def check_availability(
+    req: CheckAvailabilityRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    회원가입 정보 실시간 중복 확인 (username, email, phone_number)
+    """
+    try:
+        is_exist = await user_service.check_existence(db, req.field, req.value)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="잘못된 필드 요청입니다.")
+
+    if is_exist:
+        error_msg = {
+            "username": "이미 사용 중인 아이디입니다.",
+            "email": "이미 사용 중인 이메일입니다.",
+            "phone_number": "이미 등록된 전화번호입니다."
+        }.get(req.field, "이미 존재하는 값입니다.")
+        
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content={"message": error_msg, "available": False}
+        )
+    
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"message": "회원가입 성공", "available": True}
+    )
+
 @router.post("/register", status_code=status.HTTP_201_CREATED, response_model=UserPublic)
 async def register_user(
     user_in: UserCreate,
@@ -23,19 +53,23 @@ async def register_user(
     """
     일반 회원가입
     """
-    # 이메일 또는 유저이름 중복 확인
-    existing_user = await user_service.get_user_by_username_or_email(db, user_in.username)
-    if existing_user:
+    if await user_service.check_existence(db, "username", user_in.username):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="이미 사용 중인 유저이름입니다."
         )
     
-    existing_user = await user_service.get_user_by_username_or_email(db, user_in.email)
-    if existing_user:
+    if await user_service.check_existence(db, "email", user_in.email):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="이미 사용 중인 이메일입니다."
+        )
+    
+    # 전화번호 중복 확인도 필요하다면 여기에 추가 가능
+    if user_in.phone_number and await user_service.check_existence(db, "phone_number", user_in.phone_number):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="이미 등록된 전화번호입니다."
         )
     
     try:
