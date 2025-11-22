@@ -5,6 +5,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     DATABASE_URL: str
+    FRONTEND_URL: str
     KIS_BASE_URL: str
     KIS_WS_URL: str
     TWLEVEDATA_BASE_URL: str

@@ -74,9 +74,7 @@ async def kakao_callback(
 
             kakao_account = user_info_json.get("kakao_account", {})
             kakao_email = kakao_account.get("email")
-            kakao_name = kakao_account.get("name")
-            if not kakao_name:
-                kakao_name = f"사용자_{str(kakao_id)[:4]}"
+            kakao_name = kakao_account.get("name", f"사용자_{str(kakao_id)[:4]}")
             kakao_phone_number = kakao_account.get("phone_number")
 
             user = await user_service.get_or_create_user_social(
@@ -97,12 +95,16 @@ async def kakao_callback(
                 token=app_refresh_token,
             )
 
-            response_content = {
-                "access_token": app_access_token,
-                "token_type": "bearer"
-            }
+            redirect_url = f"{settings.FRONTEND_URL}/social/callback?access_token={app_access_token}"
 
-            response = JSONResponse(content=response_content)
+            # response_content = {
+            #     "access_token": app_access_token,
+            #     "token_type": "bearer"
+            # }
+
+            # response = JSONResponse(content=response_content)
+
+            response = RedirectResponse(url=redirect_url)
 
             response.set_cookie(
                 key="refresh_token",
@@ -120,7 +122,8 @@ async def kakao_callback(
             return JSONResponse(status_code=500, content={"error": "카카오 API 연동 오류", "details": str(e)})
         except Exception as e:
             logger.error(f"⛔ 카카오 콜백 처리 중 예외 발생: {e}", exc_info=True)
-            return JSONResponse(status_code=500, content={"error": "내부 서버 오류", "details": str(e)})
+            # return JSONResponse(status_code=500, content={"error": "내부 서버 오류", "details": str(e)})
+            return RedirectResponse(url=f"{settings.FRONTEND_URL}/login?error=social_login_failed")
         
 @router.get('/google/login')
 async def google_login():
@@ -183,10 +186,8 @@ async def google_callback(
                 return JSONResponse(status_code=400, content={"error": "Google User ID 조회 실패"})
 
             google_email = user_info_json.get("email")
-            google_name = user_info_json.get("name")
-            if not google_name:
-                google_name = f"사용자_{str(google_id)[:4]}"
-            # 구글은 전화번호를 기본 범위로 제공하지 않습니다.
+            google_name = user_info_json.get("name", f"사용자_{str(google_id)[:4]}")
+            # 구글은 전화번호를 기본 범위로 제공X
 
             # 3. 사용자 조회 또는 생성
             user = await user_service.get_or_create_user_social(
@@ -209,12 +210,17 @@ async def google_callback(
                 token=app_refresh_token,
             )
 
+            redirect_url = f"{settings.FRONTEND_URL}/social/callback?access_token={app_access_token}"
+
             # 6. 토큰 반환
-            response_content = {
-                "access_token": app_access_token,
-                "token_type": "bearer"
-            }
-            response = JSONResponse(content=response_content)
+            # response_content = {
+            #     "access_token": app_access_token,
+            #     "token_type": "bearer"
+            # }
+            # response = JSONResponse(content=response_content)
+
+            response = RedirectResponse(url=redirect_url)
+
             response.set_cookie(
                 key="refresh_token",
                 value=app_refresh_token,
@@ -230,4 +236,5 @@ async def google_callback(
             return JSONResponse(status_code=500, content={"error": "구글 API 연동 오류", "details": str(e)})
         except Exception as e:
             logger.error(f"⛔ 구글 콜백 처리 중 예외 발생: {e}", exc_info=True)
-            return JSONResponse(status_code=500, content={"error": "내부 서버 오류", "details": str(e)})
+            # return JSONResponse(status_code=500, content={"error": "내부 서버 오류", "details": str(e)})
+            return RedirectResponse(url=f"{settings.FRONTEND_URL}/login?error=social_login_failed")

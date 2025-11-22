@@ -10,7 +10,7 @@ class UserCreate(BaseModel):
 
 class UserPublic(BaseModel):
     user_id: uuid.UUID
-    username: str
+    username: str | None = None
     email: EmailStr
     name: str
 
@@ -34,3 +34,7 @@ class CheckAvailabilityRequest(BaseModel):
     """실시간 중복 확인 요청"""
     field: str  # 'username', 'email', 'phone_number'
     value: str
+
+class PhoneVerificationRequest(BaseModel):
+    "전화번호 인증 요청"
+    phone_number: str
