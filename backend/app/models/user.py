@@ -24,3 +24,6 @@ class User(Base):
 
     social_accounts = relationship("SocialAccount", back_populates="user", cascade="all, delete-orphan")
     refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
+
+    # [추가] 관심 종목 관계 설정
+    interest_stocks = relationship("UserStock", back_populates="user", cascade="all, delete-orphan")

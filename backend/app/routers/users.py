@@ -2,10 +2,13 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from sqlalchemy.future import select
 from app.database import get_db
 from app.models.user import User
+from app.models.user_stock import UserStock
 from app.schemas.user import UserPublic, UserUpdate, MessageResponse
 from app.services.user_services import user_service
+from app.services.stock_info import stock_info_service
 from app.core.security.dependencies import get_current_user
 
 logger = logging.getLogger(__name__)
@@ -57,3 +60,51 @@ async def delete_users_me(
     except Exception as e:
         logger.error(f"⛔ 회원 탈퇴 처리 중 예외: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="서버 오류 발생")
+
+
+@router.get("/me/favorites")
+async def get_my_favorites(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """내 관심 종목 조회"""
+    result = await db.execute(select(UserStock).where(UserStock.user_id == current_user.user_id))
+    stocks = result.scalars().all()
+    return stocks
+
+@router.post("/me/favorites/{code}")
+async def add_favorite(
+    code: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """관심 종목 추가"""
+    # 중복 체크
+    result = await db.execute(
+        select(UserStock).where(UserStock.user_id == current_user.user_id, UserStock.stock_code == code)
+    )
+    if result.scalars().first():
+        return {"message": "Already added"}
+
+    name = stock_info_service.get_name(code)
+    new_fav = UserStock(user_id=current_user.user_id, stock_code=code, stock_name=name)
+    db.add(new_fav)
+    await db.commit()
+    return {"message": "Added", "code": code, "name": name}
+
+@router.delete("/me/favorites/{code}")
+async def remove_favorite(
+    code: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """관심 종목 삭제"""
+    result = await db.execute(
+        select(UserStock).where(UserStock.user_id == current_user.user_id, UserStock.stock_code == code)
+    )
+    fav = result.scalars().first()
+    if fav:
+        await db.delete(fav)
+        await db.commit()
+        return {"message": "Deleted"}
+    return {"message": "Not found"}

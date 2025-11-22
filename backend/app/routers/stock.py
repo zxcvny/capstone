@@ -5,24 +5,32 @@ import asyncio
 
 router = APIRouter(prefix="/stocks", tags=["Stocks"])
 
+@router.get("/rank/{rank_type}")
+async def get_stock_ranking(rank_type: str):
+    """
+    순위 데이터 조회 (volume, amount, cap, rise, fall)
+    """
+    # 1. API로 순위 데이터(코드, 현재가, 거래대금 등) 가져오기
+    raw_data = await kis_data.get_ranking_data(rank_type)
+    
+    # 2. 종목명 매핑 (서비스에서 이름 추가)
+    final_results = []
+    for item in raw_data:
+        item['name'] = stock_info_service.get_name(item['code'])
+        final_results.append(item)
+        
+    return final_results
+
+# 기존 검색 API 유지
 @router.get("/search")
 async def search_stocks(keyword: str = Query(..., min_length=1)):
-    """
-    종목 검색 (시세 포함)
-    - 검색어와 일치하는 종목 최대 10개를 찾고,
-    - 각 종목의 현재가 정보를 병렬로 조회하여 반환합니다.
-    """
-    # 1. 종목명/코드로 검색 (최대 10개로 변경)
     results = stock_info_service.search_stocks(keyword, limit=10)
-    
     if not results:
         return []
 
-    # 2. 검색된 종목들의 현재가 병렬 조회
     tasks = [kis_data.get_current_price(item['code']) for item in results]
     price_infos = await asyncio.gather(*tasks)
 
-    # 3. 검색 결과에 시세 정보 합치기
     final_results = []
     for item, price_info in zip(results, price_infos):
         if price_info:
