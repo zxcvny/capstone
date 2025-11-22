@@ -19,7 +19,7 @@ class User(Base):
     # 일반 로그인용 정보
     username = Column(String(100), unique=True, index=True, nullable=True)
     email = Column(String(255), unique=True, index=True, nullable=True)
-    phone_number = Column(String(20), unique=True, index=True, nullable=True)
+    phone_number = Column(String(20), index=True, nullable=True)
     hashed_password = Column(String(255), nullable=True)
 
     social_accounts = relationship("SocialAccount", back_populates="user", cascade="all, delete-orphan")
