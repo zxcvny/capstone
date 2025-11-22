@@ -4,7 +4,8 @@ import Layout from './components/Layout'
 import MainPage from './pages/MainPage'
 import MarketPage from './pages/MarketPage'
 import LoginPage from './pages/LoginPage'
-import SignUpPage from './pages/SignupPage'
+import SignUpPage from './pages/SignUpPage'
+import SocialCallbackPage from './pages/SocialCallbackPage'
 
 function App() {
 
@@ -16,6 +17,7 @@ function App() {
       </Route>
       <Route path='/login' element={<LoginPage />} />
       <Route path='/signup' element={<SignUpPage />} />
+      <Route path='/social/callback' element={<SocialCallbackPage />} />
     </Routes>
   )
 }
