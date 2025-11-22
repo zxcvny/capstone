@@ -10,7 +10,7 @@ class UserCreate(BaseModel):
 
 class UserPublic(BaseModel):
     user_id: uuid.UUID
-    username: str
+    username: str | None = None
     email: EmailStr
     name: str
 

@@ -1,13 +1,14 @@
-import { useEffect, useRef } from "react"; // useRef 추가
+import { useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 function SocialCallbackPage() {
     const navigate = useNavigate();
     const location = useLocation();
-    const processed = useRef(false); // 처리 여부를 기록할 ref
+    const { login } = useAuth();
+    const processed = useRef(false);
 
     useEffect(() => {
-        // 이미 처리되었다면 실행하지 않음
         if (processed.current) return;
 
         const searchParams = new URLSearchParams(location.search);
@@ -22,19 +23,14 @@ function SocialCallbackPage() {
         }
 
         if (accessToken) {
-            console.log("소셜 로그인 성공! Access Token:", accessToken);
-            // TODO: 토큰 저장 로직 (Context 또는 localStorage 등)
+            console.log("소셜 로그인 성공!");
+            login(accessToken);
             
-            processed.current = true; // 처리 완료 표시
+            processed.current = true;
             alert("소셜 로그인 성공!");
             navigate("/"); 
-        } else {
-            // 토큰이 없는 경우 처리 (useEffect가 두 번 실행될 때 타이밍 이슈 방지)
-            // processed.current = true; 
-            // alert("토큰이 없습니다.");
-            // navigate("/login");
         }
-    }, [location, navigate]);
+    }, [location, navigate, login]);
 
     return (
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: '50px' }}>

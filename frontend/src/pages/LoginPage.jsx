@@ -3,17 +3,23 @@ import { Link, useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
 import { RiKakaoTalkFill } from "react-icons/ri";
 import Logo from "../components/Logo";
+import { useAuth } from "../context/AuthContext";
 import "../styles/AuthPage.css";
 
 const BASE_URL = "http://localhost:8000";
 
 function LoginPage() {
     const navigate = useNavigate();
+    const { login } = useAuth()
+
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [loginError, setLoginError] = useState(""); // 에러 메시지 상태
 
     const handleLogin = async (e) => {
         e.preventDefault();
+        setLoginError(""); // 기존 에러 초기화
+
         const formData = new URLSearchParams();
         formData.append("username", username);
         formData.append("password", password);
@@ -28,19 +34,19 @@ function LoginPage() {
             if (response.ok) {
                 const data = await response.json();
                 console.log("Access Token:", data.access_token);
-                alert("로그인 성공!");
+                login(data.access_token);
                 navigate("/"); 
             } else {
                 const errData = await response.json();
-                alert(errData.detail || "로그인에 실패했습니다.");
+                // 백엔드 에러 메시지 또는 기본 메시지 설정
+                setLoginError(errData.detail || "아이디 또는 비밀번호가 잘못되었습니다.");
             }
         } catch (error) {
             console.error("로그인 요청 에러:", error);
-            alert("서버 오류가 발생했습니다.");
+            setLoginError("서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
         }
     };
 
-    // [추가] 소셜 로그인 핸들러
     const handleSocialLogin = (provider) => {
         window.location.href = `${BASE_URL}/auth/${provider}/login`;
     };
@@ -73,8 +79,17 @@ function LoginPage() {
                             onChange={(e) => setPassword(e.target.value)}
                         />
                     </div>
+                    
+                    {/* 에러 메시지 표시 영역 */}
+                    {loginError && (
+                        <div className="validation-msg" style={{ marginBottom: '10px'}}>
+                            <span className="error">{loginError}</span>
+                        </div>
+                    )}
+
                     <div className="login-options">
                         <label htmlFor="remember-check" className="remember-me">
+                            {/* 기능 구현은 추후 백엔드 Refresh Token 연동 필요, 현재는 UI만 */}
                             <input type="checkbox" id="remember-check" /> 로그인유지
                         </label>
                         <Link to="/find-password" className="link-to find-password">비밀번호 찾기</Link>
