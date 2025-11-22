@@ -243,6 +243,10 @@ function SignUpPage() {
         }
     };
 
+    const handleSocialLogin = (provider) => {
+        window.location.href = `${BASE_URL}/auth/${provider}/login`;
+    };
+
     return (
         <div className="auth-container">
             <div className="auth-card">
@@ -381,10 +385,18 @@ function SignUpPage() {
                 <div className="divider"><span>또는</span></div>
 
                 <div className="social-login">
-                    <button className="social-button kakao" type="button">
+                    <button 
+                        className="social-button kakao" 
+                        type="button" 
+                        onClick={() => handleSocialLogin('kakao')}
+                    >
                         <RiKakaoTalkFill /> 카카오로 시작하기
                     </button>
-                    <button className="social-button google" type="button">
+                    <button 
+                        className="social-button google" 
+                        type="button" 
+                        onClick={() => handleSocialLogin('google')}
+                    >
                         <FcGoogle /> 구글로 시작하기
                     </button>
                 </div>
