@@ -31,8 +31,7 @@ async def check_availability(
     if is_exist:
         error_msg = {
             "username": "이미 사용 중인 아이디입니다.",
-            "email": "이미 사용 중인 이메일입니다.",
-            "phone_number": "이미 등록된 전화번호입니다."
+            "email": "이미 사용 중인 이메일입니다."
         }.get(req.field, "이미 존재하는 값입니다.")
         
         return JSONResponse(
@@ -63,13 +62,6 @@ async def register_user(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="이미 사용 중인 이메일입니다."
-        )
-    
-    # 전화번호 중복 확인도 필요하다면 여기에 추가 가능
-    if user_in.phone_number and await user_service.check_existence(db, "phone_number", user_in.phone_number):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="이미 등록된 전화번호입니다."
         )
     
     try:

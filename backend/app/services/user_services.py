@@ -106,8 +106,6 @@ class UserService:
             query = select(User).where(User.username == value)
         elif field == "email":
             query = select(User).where(User.email == value)
-        elif field == "phone_number":
-            query = select(User).where(User.phone_number == value)
         else:
             raise ValueError("지원하지 않는 필드입니다.")
         
