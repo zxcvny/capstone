@@ -1,11 +1,12 @@
 import logging
+import random
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.schemas.user import UserCreate, UserPublic, CheckAvailabilityRequest
+from app.schemas.user import UserCreate, UserPublic, CheckAvailabilityRequest, PhoneVerificationRequest
 from app.schemas.token import AccessTokenResponse
 from app.services.user_services import user_service
 from app.core.security.token import create_access_token, create_refresh_token
@@ -14,6 +15,32 @@ from app.core.security.hashing import verify_password
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix='/auth', tags=['User-General'])
+
+# 임시 인증번호 저장소
+verification_store = {}
+
+@router.post("/send-verification-code")
+async def send_verification_code(req: PhoneVerificationRequest):
+    """
+    전화번호 인증번호 발송 (모의)
+    실제 SMS 발송 대신, 생성된 코드를 응답으로 반환하여 Alert로 띄울 수 있게 함
+    """
+    # 1. 6자리 랜덤 숫자 생성
+    code = str(random.randint(100000, 999999))
+    
+    # 2. 저장 (나중에 검증용 API를 만들 경우 사용)
+    verification_store[req.phone_number] = code
+    
+    logger.info(f"📱 [SMS 발송 시뮬레이션] 번호: {req.phone_number}, 인증코드: {code}")
+
+    # 3. 클라이언트에 반환 (개발용: Alert에 띄우기 위함)
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={
+            "message": "인증번호가 발송되었습니다.",
+            "code": code
+        }
+    )
 
 @router.post("/check-availability")
 async def check_availability(

@@ -299,6 +299,30 @@
     font-size: 14px;
 }
 
+/* 유효성 검사 메시지 (새로 추가됨) */
+.validation-msg {
+    font-size: 12px;
+    margin-top: -10px;
+    margin-bottom: 15px;
+    min-height: 15px;
+    padding-left: 5px;
+}
+
+.validation-msg .success {
+    color: #4caf50;
+}
+
+.validation-msg .error {
+    color: #ff6b6b;
+}
+
+.validation-msg.info {
+    color: #adb5bd;
+    text-align: right;
+    margin-top: -10px;
+    margin-bottom: 10px;
+}
+
 @keyframes slideUp {
     from { transform: translateY(30px); opacity: 0; }
     to   { transform: translateY(0); opacity: 1; }
