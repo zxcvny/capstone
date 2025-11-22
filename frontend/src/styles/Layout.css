@@ -171,6 +171,116 @@
   outline: none;
 }
 
+/* 검색 결과 드롭다운 */
+.search-results-dropdown {
+  position: absolute;
+  top: 100%; /* 검색창 바로 아래 */
+  left: 0;
+  width: 100%;
+  background-color: white;
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-top: 5px;
+  max-height: 300px; /* 결과가 많으면 스크롤 */
+  overflow-y: auto;
+  z-index: 1000; /* 다른 요소 위에 표시 */
+  list-style: none;
+  padding: 0;
+}
+
+.search-results-dropdown li {
+  padding: 12px 15px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f1f3f5;
+}
+
+.search-results-dropdown li:last-child {
+  border-bottom: none;
+}
+
+.search-results-dropdown li:hover {
+  background-color: #f8f9fa; /* 마우스 올렸을 때 색상 */
+}
+
+.stock-name {
+  font-weight: bold;
+  color: #343a40;
+}
+
+.stock-code {
+  font-size: 0.85rem;
+  color: #868e96;
+}
+/* 검색 결과 드롭다운 */
+.search-results-dropdown {
+  position: absolute;
+  top: 100%; /* 검색창 바로 아래 */
+  left: 0;
+  width: 100%;
+  background-color: white;
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-top: 5px;
+  max-height: 300px; /* 결과가 많으면 스크롤 */
+  overflow-y: auto;
+  z-index: 1000; /* 다른 요소 위에 표시 */
+  list-style: none;
+  padding: 0;
+}
+
+.search-results-dropdown li {
+  display: flex;
+  justify-content: space-between; /* 좌우 끝으로 배치 */
+  align-items: center;
+  padding: 12px 15px;
+  border-bottom: 1px solid #f1f3f5;
+  cursor: pointer;
+}
+
+.search-results-dropdown li:hover {
+  background-color: #f8f9fa;
+}
+
+/* 왼쪽: 종목명 + 코드 */
+.search-result-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stock-name {
+  font-weight: 600;
+  color: #333;
+}
+
+.stock-code {
+  font-size: 13px;
+  color: #888;
+}
+
+/* 오른쪽: 현재가 + 등락률 */
+.search-result-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* 상승/하락 색상 */
+.up {
+  color: #e13636; /* 빨강 */
+}
+
+.down {
+  color: #2b66cf; /* 파랑 */
+}
+
 /* 헤더-로그인 버튼 */
 .login-btn {
   background-color: #212529;
