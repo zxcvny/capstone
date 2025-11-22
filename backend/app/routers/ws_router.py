@@ -7,15 +7,21 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/realtime", tags=["WebSocket"])
 
+# router 코드는 님이 작성하신 것과 거의 동일하게 사용 가능합니다.
+# 다만 클라이언트가 연결 끊었을 때 disconnect_client가 확실히 호출되도록
+# finally 블록을 활용하는 것이 안전합니다.
 @router.websocket("/top-volume")
 async def top_volume_ws(websocket: WebSocket):
     await kis_ws_manager.connect_client(websocket)
     try:
         while True:
-            await websocket.receive_text()  # ping, 클라이언트 연결 상태 감지
+            # 클라이언트로부터 메시지를 받을 일이 없다면
+            # 연결 유지용으로만 대기합니다.
+            await websocket.receive_text()
     except WebSocketDisconnect:
-        logger.info("✅ 클라이언트가 WebSocket 연결을 해제했습니다.")
-        kis_ws_manager.disconnect_client(websocket)
+        logger.info("✅ 클라이언트 연결 해제")
     except Exception as e:
-        logger.error(f"⛔ WebSocket 처리 중 예기치 않은 오류 발생: {e}", exc_info=True)
+        logger.error(f"⛔ 소켓 에러: {e}")
+    finally:
+        # 어떤 이유로든 루프가 끝나면 연결 해제 처리
         kis_ws_manager.disconnect_client(websocket)
