@@ -58,6 +58,16 @@ class KisDataService:
         rate = item.get('prdy_ctrt')
         volume = item.get('acml_vol')
 
+        # [수정] 거래대금이 API 응답에 없고(시가총액 순위 등), 가격과 거래량이 있다면 근사치 계산
+        if not amount and price and volume:
+            try:
+                # 문자열로 오는 경우가 많으므로 정수형 변환 후 계산
+                amount = str(int(price) * int(volume))
+            except ValueError:
+                # 변환 실패 시 기본값 유지 혹은 0
+                if not amount:
+                    amount = "0"
+
         return {
             "code": code,
             "price": price,
@@ -100,7 +110,6 @@ class KisDataService:
         # 2. 시가총액(cap) 상위
         elif rank_type == "cap":
             tr_id = "FHPST01740000"
-            # [수정] URL 경로 변경: quotations -> ranking
             path = "/uapi/domestic-stock/v1/ranking/market-cap" 
             
             params = {
@@ -129,14 +138,14 @@ class KisDataService:
                 "FID_COND_SCR_DIV_CODE": "20170",
                 "FID_INPUT_ISCD": "0000",
                 "FID_RANK_SORT_CLS_CODE": sort_cls_code,
-                "FID_INPUT_CNT_1": "30",  # [중요] 조회 개수 명시
+                "FID_INPUT_CNT_1": "", 
                 "FID_PUN_CODE": "01",
                 "FID_DIV_CLS_CODE": "0",
                 "FID_TRGT_CLS_CODE": "11111111",
                 "FID_TRGT_EXLS_CLS_CODE": "000000",
                 "FID_INPUT_PRICE_1": "",
                 "FID_INPUT_PRICE_2": "",
-                "FID_VOL_CNT": "0"        # [수정] 빈 값 대신 "0" 설정 (필수값일 수 있음)
+                "FID_VOL_CNT": ""        # [수정] "0"에서 ""(빈 값)으로 변경
             }
         
         else:
