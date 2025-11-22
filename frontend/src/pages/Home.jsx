@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-function MainPage() {
+function Home() {
     const [stockData, setStockData] = useState({});
     const [status, setStatus] = useState("Disconnected");
     const ws = useRef(null);
@@ -100,4 +100,4 @@ function MainPage() {
     );
 }
 
-export default MainPage;
+export default Home;
