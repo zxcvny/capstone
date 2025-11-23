@@ -121,7 +121,7 @@
 .header-container {
   padding: 40px 10px;
   height: 64px;
-  /* background-color: yellow; */
+  background-color: white;
   position: sticky;
   top: 0;
   z-index: 900;
@@ -147,7 +147,7 @@
 /* 헤더-검색창 */
 .header-search {
   position: relative;
-  width: 450px;
+  width: 550px;
 }
 
 .search-icon {
@@ -294,6 +294,19 @@
   background-color: #3d414b;
 }
 
+/* 헤더-로그아웃 버튼 */
+.logout-btn {
+  background-color: #212529;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 10px;
+  font-size: 15px;
+  border: none;
+}
+
+.logout-btn:hover {
+  background-color: #3d414b;
+}
 
 /* 메인콘텐츠 영역 */
 .main-content-container {

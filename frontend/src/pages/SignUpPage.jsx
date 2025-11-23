@@ -287,7 +287,7 @@ function SignUpPage() {
                     </div>
 
                     {/* 이름 입력 */}
-                    <div className="auth-input-group">
+                    <div className="auth-input-group" style={{ paddingBottom: '20px'}}>
                         <input type="text" placeholder="이름" required 
                             value={name} onChange={(e) => setName(e.target.value)}
                         />

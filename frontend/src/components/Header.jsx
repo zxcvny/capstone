@@ -62,6 +62,12 @@ function Header() {
         return parseInt(price).toLocaleString();
     };
 
+    const handleLogout = () => {
+        if (window.confirm("정말 로그아웃 하시겠습니까?")) {
+            logout();
+        }
+    };
+
     return (
         <header className="header-container">
             <div className="header-content-wrapper">
@@ -128,8 +134,8 @@ function Header() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <span style={{ fontWeight: 'bold', color: '#212529' }}>{user.name}님</span>
                             <button 
-                                onClick={logout} 
-                                className="login-btn"
+                                onClick={handleLogout} 
+                                className="logout-btn"
                                 style={{ cursor: 'pointer' }}
                             >
                                 로그아웃
