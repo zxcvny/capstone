@@ -27,3 +27,14 @@ class User(Base):
 
     # [추가] 관심 종목 관계 설정
     interest_stocks = relationship("UserStock", back_populates="user", cascade="all, delete-orphan")
+
+    @property
+    def is_social(self) -> bool:
+        return not bool(self.hashed_password)
+    
+    @property
+    def social_provider(self) -> str | None:
+        if self.social_accounts and len(self.social_accounts) > 0:
+            # SocialAccount 모델의 provider 필드는 Enum일 수 있으므로 .value로 값 접근
+            return self.social_accounts[0].provider.value 
+        return None

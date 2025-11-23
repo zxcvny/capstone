@@ -125,6 +125,13 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="탈퇴한 회원입니다.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
     app_access_token = create_access_token(user_id=user.user_id)
     app_refresh_token = create_refresh_token()
 
