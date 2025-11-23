@@ -65,7 +65,10 @@ class UserService:
         )
         db.add(new_user)
         await db.commit()
-        await db.refresh(new_user)
+        
+        query = select(User).options(selectinload(User.social_accounts)).where(User.user_id == new_user.user_id)
+        result = await db.execute(query)
+        new_user = result.scalars().first()
         
         return new_user
 
@@ -172,8 +175,10 @@ class UserService:
         user.is_active = False
         user.updated_at = datetime.now(timezone.utc)
         
-        # (선택) 보안을 위해 Refresh Token도 모두 폐기
-        for token in user.refresh_tokens:
+        result = await db.execute(select(RefreshToken).where(RefreshToken.user_id == user.user_id))
+        tokens = result.scalars().all()
+
+        for token in tokens:
             token.is_revoked = True
             db.add(token)
 
