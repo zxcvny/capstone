@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field
 
 class UserCreate(BaseModel):
@@ -13,6 +14,9 @@ class UserPublic(BaseModel):
     username: str | None = None
     email: EmailStr
     name: str
+    phone_number: str | None = None
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True
