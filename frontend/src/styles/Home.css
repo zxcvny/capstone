@@ -26,6 +26,72 @@
     margin-bottom: 10px;
 }
 
+.guest-welcome-banner {
+    width: 100%;
+    background: #f9fafb;
+    border-left: 4px solid #273c4d;
+    border-radius: 12px;
+    padding: 25px 20px;
+    margin-bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+}
+
+.guest-welcome-banner h2 {
+    font-size: 26px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+    margin-bottom: 10px;
+}
+
+.guest-welcome-banner p {
+    font-size: 14px;
+    color: #4b5563;
+    margin: 0;
+}
+
+.guest-welcome-banner .banner-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+/* 로그인 버튼 - 블루 강조 */
+.banner-btn.login-fill {
+    background: #273c4d;
+    color: white;
+    font-weight: 500;
+    padding: 8px 20px;
+    border-radius: 8px;
+    transition: 0.2s ease;
+}
+
+.banner-btn.login-fill:hover {
+    background: #212529;
+}
+
+/* 회원가입 버튼 - 테두리만 */
+.banner-btn.signup-outline {
+    border: 1px solid #273c4d;
+    color: #273c4d;
+    background: transparent;
+    font-weight: 500;
+    padding: 8px 20px;
+    border-radius: 8px;
+    transition: 0.2s ease;
+}
+
+.banner-btn.signup-outline:hover {
+    background: rgba(37, 99, 235, 0.1);
+}
+
 /* 시장 버튼 그룹 */
 .market-btn-group {
     display: inline-flex;

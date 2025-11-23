@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom'; // Link 추가
 import { FaRegHeart, FaHeart } from "react-icons/fa";
+import { useAuth } from "../context/AuthContext"; // AuthContext 추가
 import "../styles/Home.css";
 
 function Home() {
     const navigate = useNavigate();
+    const { user } = useAuth(); // 사용자 정보 가져오기
     const [marketType, setMarketType] = useState('ALL');
     const [rankType, setRankType] = useState('volume');
     const [stockList, setStockList] = useState([]);
     const [favorites, setFavorites] = useState(new Set());
 
+    // ... (기존 isMarketOpen, fetchFavorites, fetchRankings 로직 유지) ...
     const isMarketOpen = () => {
         const now = new Date();
         const day = now.getDay();
@@ -29,7 +32,7 @@ function Home() {
 
     const fetchFavorites = async () => {
         try {
-            const token = localStorage.getItem('accessToken');
+            const token = localStorage.getItem('access_token'); // accessToken -> access_token 키 확인 필요 (AuthContext와 일치시킴)
             if (!token) return;
             const res = await fetch('http://localhost:8000/users/me/favorites', {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -70,7 +73,7 @@ function Home() {
 
     const toggleFavorite = async (e, code) => {
         e.stopPropagation();
-        const token = localStorage.getItem('accessToken');
+        const token = localStorage.getItem('access_token'); // access_token으로 통일
 
         if (!token) return alert("로그인이 필요합니다.");
 
@@ -125,10 +128,27 @@ function Home() {
 
     return (
         <div className="home-container">
+            {/* 비로그인 사용자 전용 환영 배너 */}
+            {!user && (
+                <section className="guest-welcome-banner">
+                    <div className="banner-content">
+                        <h2>투자의 모든 것, 한눈에 확인하세요</h2>
+                        <p>국내/해외 실시간 시세 조회부터 관심 종목 관리까지.</p>
+                        <p>지금 바로 시작해보세요!</p>
+                        <div className="banner-buttons">
+                            <Link to="/login" className="link-to banner-btn login-fill">로그인 하러가기</Link>
+                            <Link to="/signup" className="link-to banner-btn signup-outline">회원가입</Link>
+                        </div>
+                    </div>
+                </section>
+            )}
+
             <h1>실시간 차트</h1>
             <hr></hr>
+            
             <div className="button-container">
                 <p>전체/국내/해외 시장과 거래량, 시가총액 등 순위를 선택할 수 있어요.</p>
+                
                 {/* 시장 구분 */}
                 <div className="market-btn-group">
                     <button
@@ -137,14 +157,12 @@ function Home() {
                     >
                         전체
                     </button>
-
                     <button
                         className={`market-btn ${marketType === 'DOMESTIC' ? 'active' : ''}`}
                         onClick={() => setMarketType('DOMESTIC')}
                     >
                         국내
                     </button>
-
                     <button
                         className={`market-btn ${marketType === 'OVERSEAS' ? 'active' : ''}`}
                         onClick={() => setMarketType('OVERSEAS')}
@@ -196,29 +214,19 @@ function Home() {
                                         {favorites.has(stock.code) ? <FaHeart /> : <FaRegHeart />}
                                     </span>
                                 </td>
-
-                                <td>
-                                    <div className={getRankStyle(index + 1)}>
-                                        {index + 1}
-                                    </div>
-                                </td>
-
+                                <td><div className={getRankStyle(index + 1)}>{index + 1}</div></td>
                                 <td className="stock-name">
                                     <div className="name">{stock.name}</div>
                                     <div className="code">{stock.code}</div>
                                 </td>
-
                                 <td className="price">{formatNumber(stock.price)}원</td>
-
                                 <td className={`rate ${getColor(stock.change_rate)}`}>
                                     {stock.change_rate > 0 ? '+' : ''}{parseFloat(stock.change_rate).toFixed(2)}%
                                 </td>
-
                                 <td>{formatNumber(stock.volume)}</td>
                                 <td>{formatAmount(stock.amount)}</td>
                             </tr>
                         ))}
-
                         {stockList.length === 0 && (
                             <tr>
                                 <td colSpan="7" className="loading">
