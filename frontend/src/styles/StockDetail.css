@@ -1,0 +1,324 @@
+.stock-detail-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: sans-serif;
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+}
+
+.title-section h1 {
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+.market-badge {
+    background: #eee;
+    font-size: 0.8rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    vertical-align: middle;
+    margin-left: 8px;
+    color: #555;
+}
+
+.stock-code {
+    color: #888;
+    margin: 5px 0 0 0;
+    font-size: 0.9rem;
+}
+
+.price-section {
+    text-align: right;
+}
+
+.price {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+/* 등락률 및 날짜 표시 영역 스타일 개선 */
+.change {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px; /* 날짜와 등락률 사이 간격 */
+    margin-top: 5px;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.date-label {
+    color: #999;         /* 연한 회색으로 변경하여 덜 튀게 */
+    font-weight: 400;    /* 굵기 얇게 */
+    font-size: 0.9rem;   /* 크기 작게 */
+    background-color: #f5f5f5;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.price.up, .change.up { color: #ef5350; }
+.price.down, .change.down { color: #26a69a; }
+
+/* 차트 및 기타 스타일 */
+.chart-section {
+    margin-bottom: 30px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.chart-controls {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.period-btn-group-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.period-divider {
+    width: 1px;
+    height: 20px;
+    background-color: #ddd;
+}
+
+.period-select {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    background-color: white;
+}
+
+.period-select.active {
+    border-color: #333;
+    font-weight: bold;
+    background-color: #f0f0f0;
+}
+
+button {
+    background: white;
+    border: 1px solid #ddd;
+    padding: 5px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #666;
+    transition: all 0.2s;
+}
+
+button:hover {
+    background-color: #f5f5f5;
+}
+
+button.active {
+    background: #333;
+    color: white;
+    border-color: #333;
+}
+
+/* 투자 정보 그리드 */
+.financial-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+@media (max-width: 600px) {
+    .financial-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.info-card {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    position: relative;
+    border: 1px solid #eee;
+}
+
+.info-card .label {
+    display: block;
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.info-card .value {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+/* 툴팁 */
+.tooltip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    background: #ddd;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 10px;
+    cursor: help;
+    margin-left: 4px;
+    vertical-align: text-top;
+}
+
+.info-card .tooltip:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 0.8rem;
+    font-weight: normal;
+    z-index: 10;
+    white-space: normal;
+    line-height: 1.4;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.order-book-section {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+    height: 400px;
+}
+
+.hoga-container, .trades-container {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.hoga-table {
+    overflow-y: auto;
+    flex: 1;
+}
+
+.hoga-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 10px;
+    font-size: 13px;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.hoga-row.ask { background-color: #e3f2fd; color: #1565c0; } /* 매도 파랑 */
+.hoga-row.bid { background-color: #ffebee; color: #c62828; } /* 매수 빨강 */
+
+.trades-list {
+    overflow-y: auto;
+    flex: 1;
+}
+
+.trade-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 10px;
+    font-size: 13px;
+    border-bottom: 1px solid #f9f9f9;
+}
+
+.trade-row .up { color: #ef5350; }
+.trade-row .down { color: #2962ff; }
+
+.trades-section {
+    margin-bottom: 30px;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.trades-section h3 {
+    margin-top: 0;
+    font-size: 1.1rem;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 10px;
+    margin-bottom: 0;
+}
+
+.trades-table-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.5fr 1fr 1fr 1.2fr;
+    padding: 10px;
+    background: #f9f9f9;
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #666;
+    text-align: right;
+}
+.trades-table-header span:first-child { text-align: center; }
+
+.trades-table-body {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.trade-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.5fr 1fr 1fr 1.2fr;
+    padding: 8px 10px;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #f5f5f5;
+    text-align: right;
+}
+.trade-row span:first-child { text-align: center; color: #666; }
+
+.up { color: #ef5350; }
+.down { color: #26a69a; }
+
+.trades-table-header, .trade-row {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 1.5fr 1fr 1.5fr; /* 5개 컬럼 비율 조정 */
+    padding: 8px 10px;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #f5f5f5;
+    text-align: right;
+}
+.trades-table-header span:first-child, .trade-row span:first-child { text-align: center; }
+
+.trades-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 10px;
+}
+
+.vol-power-badge {
+    font-size: 0.9rem;
+    color: #666;
+}

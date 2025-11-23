@@ -18,7 +18,7 @@ function App() {
       <Routes>
         <Route path='/' element={<Layout />}>
           <Route index element={<Home />} />
-          <Route path="/stock/:code" element={<StockDetail />} />
+          <Route path="/stock/:market/:symbol" element={<StockDetail />} />
           <Route path='/myinvestlist' element={<MyInvestList />} />
           <Route path='/myfavorite' element={<MyFavorite />} />
           <Route path='/myinfo' element={<MyInfo />} />

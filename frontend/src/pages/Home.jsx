@@ -188,7 +188,7 @@ function Home() {
                     </thead>
                     <tbody>
                         {stockList.map((stock, index) => (
-                            <tr key={stock.code} onClick={() => navigate(`/stock/${stock.code}`)} style={{ borderBottom: '1px solid #f0f0f0', cursor: 'pointer', height: '60px' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fbfbfb'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}>
+                            <tr key={stock.code} onClick={() => {const targetMarket = marketType === 'DOMESTIC' ? 'KR' : 'NAS';navigate(`/stock/${targetMarket}/${stock.code}`);}} style={{ borderBottom: '1px solid #f0f0f0', cursor: 'pointer', height: '60px' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fbfbfb'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}>
                                 <td style={{ textAlign: 'center' }}>
                                     <span onClick={(e) => toggleFavorite(e, stock.code)} style={{ fontSize: '20px', color: favorites.has(stock.code) ? '#ff4d4f' : '#e0e0e0', cursor: 'pointer' }}>
                                         {favorites.has(stock.code) ? '♥' : '♡'}
