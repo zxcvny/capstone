@@ -1,0 +1,108 @@
+/* frontend/src/styles/NotLogin.css */
+
+.not-login-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh; /* 시원한 여백 */
+    background-color: #ffffff; /* 깨끗한 화이트 배경 */
+    border-radius: 16px; /* 부드러운 모서리 */
+    padding: 3rem 2rem;
+    text-align: center;
+    /* 은은한 그림자로 입체감 부여 */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); 
+    margin: 40px auto;
+    max-width: 600px;
+    border: 1px solid #ececec;
+}
+
+.not-login-icon {
+    font-size: 3.5rem;
+    color: #212529; /* 아이콘도 메인 컬러와 톤을 맞춤 */
+    margin-bottom: 1.5rem;
+    background-color: #f1f3f5;
+    width: 100px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%; /* 둥근 아이콘 배경 */
+}
+
+.not-login-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #212529; /* 메인 타이틀 진하게 */
+    margin-bottom: 1rem;
+    letter-spacing: -0.5px;
+}
+
+.not-login-desc {
+    font-size: 1.05rem;
+    color: #495057; /* 가독성 좋은 회색 */
+    line-height: 1.6;
+    margin-bottom: 2.5rem;
+    word-break: keep-all; /* 한글 줄바꿈 최적화 */
+}
+
+.not-login-btn-group {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+    justify-content: center;
+}
+
+.not-login-btn {
+    padding: 0.9rem 2.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 140px;
+}
+
+/* 메인 버튼: 메인 컬러(#212529) 적용 */
+.not-login-btn.primary {
+    background-color: #212529;
+    color: #ffffff;
+    border: 1px solid #212529;
+}
+
+.not-login-btn.primary:hover {
+    background-color: #343a40; /* 호버 시 약간 밝아짐 */
+    border-color: #343a40;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(33, 37, 41, 0.2);
+}
+
+/* 서브 버튼: 아웃라인 스타일 */
+.not-login-btn.secondary {
+    background-color: #ffffff;
+    color: #212529;
+    border: 1px solid #dee2e6;
+}
+
+.not-login-btn.secondary:hover {
+    background-color: #f8f9fa;
+    border-color: #212529; /* 호버 시 테두리를 메인 컬러로 */
+    color: #212529;
+}
+
+/* 모바일 대응 */
+@media (max-width: 576px) {
+    .not-login-container {
+        padding: 2rem 1.5rem;
+        margin: 20px 15px;
+        min-height: 50vh;
+    }
+    
+    .not-login-btn-group {
+        flex-direction: column; /* 모바일에서 버튼 세로 정렬 */
+    }
+    
+    .not-login-btn {
+        width: 100%;
+    }
+}

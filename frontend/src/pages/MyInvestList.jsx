@@ -5,7 +5,7 @@ function MyInvestList() {
     const { user } = useAuth();
 
     return(
-        <div>
+        <div className="page-container">
             {user ? (
                 // user 정보 있을 때 (로그인 상태일 때)
                 <div></div>

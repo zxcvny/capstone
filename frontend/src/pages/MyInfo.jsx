@@ -143,7 +143,7 @@ function MyInfo() {
     };
 
     return (
-        <div className="myinfo-container">
+        <div className="page-container">
             {user ? (
                 <div className="myinfo-content">
                     <div className="myinfo-header">
