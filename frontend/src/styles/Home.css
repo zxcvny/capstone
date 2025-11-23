@@ -1,0 +1,282 @@
+/* 기본 레이아웃 */
+.home-container {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 15px;
+    font-family: 'Pretendard', sans-serif;
+}
+
+.home-container h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #1f2937;
+}
+
+.home-container hr {
+    border: none;
+    border-bottom: 2px solid #e5e7eb;
+    margin-bottom: 15px;
+}
+
+.home-container p {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 10px;
+}
+
+/* 시장 버튼 그룹 */
+.market-btn-group {
+    display: inline-flex;
+    flex-direction: row;
+    /* background: #ecfbff; */
+    padding: 5px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    gap: 0;
+}
+
+.market-btn {
+    padding: 8px 20px;
+    font-size: 15px;
+    border: none;
+    background: transparent;
+    color: #555;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s ease;
+    font-weight: 500;
+}
+
+/* hover 시 색 조금 진하게 */
+.market-btn:hover {
+    background: #ebfbff;
+}
+
+/* 선택된 버튼 (토글 효과) */
+.market-btn.active {
+    background: #273c4d;
+    color: white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+/* 탭 버튼 */
+.tab-wrapper {
+    display: inline-flex;
+    flex-direction: row;
+    /* background: #ecfbff; */
+    padding: 5px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    gap: 0;
+}
+
+.tab-btn {
+    padding: 7px 18px;
+    font-size: 14px;
+    border: none;
+    background: transparent;
+    color: #555;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s ease;
+    font-weight: 500;
+}
+
+/* hover 시 */
+.tab-btn:hover {
+    background: #ebfbff;
+}
+
+/* active 탭 */
+.tab-btn.active {
+    background: #273c4d;
+    color: white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.button-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.market-btn-group,
+.tab-wrapper {
+    display: inline-flex;
+    flex-direction: row;
+    gap: 5px;
+}
+
+.market-btn-group {
+    flex-direction: row;
+}
+
+.tab-wrapper {
+    flex-direction: row;
+}
+
+/* 테이블 */
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.stock-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+}
+
+.stock-table tbody tr {
+    background: white;
+    transition: background 0.15s ease;
+}
+
+.stock-row:hover {
+    background: #cacfd4;
+    cursor: pointer;
+}
+
+.stock-table td {
+    border-bottom: 1px solid #efefef;
+    padding: 14px 10px;
+}
+
+/* 헤더 */
+.stock-table thead th {
+    padding: 14px 10px;
+    color: #6d6d6d;
+    font-weight: 600;
+    font-size: 14px;
+    border-bottom: 2px solid #f1f3f5;
+}
+
+/* 데이터 행 */
+.stock-table tbody tr {
+    background: white;
+    transition: 0.2s ease;
+}
+
+.stock-row:hover {
+    background: #f7fbff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* 셀 공통 스타일 */
+.stock-table td {
+    padding: 14px 10px;
+    text-align: center;
+    border-top: 1px solid #f1f1f1;
+}
+
+/* 순위 스타일 */
+.rank {
+    display: inline-block;
+    width: 26px;
+    height: 26px;
+    line-height: 26px;
+    border-radius: 8px;
+    /* background: #ececec; */
+    color: #555;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* .rank1 {
+    background: #ff4d4f;
+    color: white;
+}
+
+.rank2 {
+    background: #ff7a45;
+    color: white;
+}
+
+.rank3 {
+    background: #ffa940;
+    color: white;
+} */
+
+/* 종목명 */
+.stock-name {
+    text-align: left;
+}
+
+.stock-name .name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+}
+
+.stock-name .code {
+    font-size: 12px;
+    color: #888;
+    margin-top: 2px;
+}
+
+/* 가격, 등락률 */
+.price {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.rate {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.rate.up {
+    color: #e53935;
+}
+
+.rate.down {
+    color: #1e88e5;
+}
+
+.rate.none {
+    color: #555;
+}
+
+/* 관심 버튼 */
+.fav-btn {
+    cursor: pointer;
+    font-size: 18px;
+    transition: 0.2s ease;
+    color: #dddddd;
+}
+
+.fav-btn:hover {
+    color: #ff6b81;
+}
+
+.fav-btn.on {
+    color: #ff3b62;
+}
+
+/* 로딩 */
+.loading {
+    text-align: center;
+    padding: 30px 0;
+    font-size: 15px;
+    color: #888;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .market-btn {
+        padding: 7px 14px;
+        font-size: 13px;
+    }
+
+    .tab-btn {
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+
+    .stock-table td,
+    .stock-table th {
+        padding: 10px 6px;
+    }
+}
