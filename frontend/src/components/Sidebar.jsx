@@ -3,16 +3,18 @@ import '../styles/Layout.css';
 import {
     FaHome,
     FaChartBar,
-    FaBullhorn,
-    FaRobot,
+    FaHeart,
+    FaThList,
+    FaUser,
     FaAngleDoubleRight
 } from 'react-icons/fa';
 
 const menuItems = [
     { key: 'home', path: '/', name: '홈', icon: <FaHome /> },
     { key: 'myinvestlist', path: '/myinvestlist', name: '내 투자 종목', icon: <FaChartBar /> },
-    { key: 'signal', path: '/signal', name: '매매신호', icon: <FaBullhorn /> },
-    { key: 'auto-trade', path: '/auto-trade', name: '자동매매', icon: <FaRobot /> },
+    { key: 'myfavorite', path: '/myfavorite', name: '내 관심 종목', icon: <FaHeart /> },
+    { key: 'mycategory', path: '/mycategory', name: '내 카테고리', icon: <FaThList /> },
+    { key: 'myinfo', path: '/myinfo', name: '내 정보', icon: <FaUser /> },
 ];
 
 function Sidebar({ isOpen, toggleSidebar }) {
