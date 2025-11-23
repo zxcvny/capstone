@@ -9,7 +9,6 @@ import SignUpPage from './pages/SignUpPage'
 import SocialCallbackPage from './pages/SocialCallbackPage'
 import StockDetail from './pages/StockDetail';
 import MyFavorite from './pages/MyFavorite'
-import MyCategory from './pages/myCategory'
 import MyInfo from './pages/MyInfo'
 
 function App() {
@@ -22,7 +21,6 @@ function App() {
           <Route path="/stock/:code" element={<StockDetail />} />
           <Route path='/myinvestlist' element={<MyInvestList />} />
           <Route path='/myfavorite' element={<MyFavorite />} />
-          <Route path='/mycategory' element={<MyCategory />} />
           <Route path='/myinfo' element={<MyInfo />} />
         </Route>
         <Route path='/login' element={<LoginPage />} />
