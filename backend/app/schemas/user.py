@@ -17,6 +17,8 @@ class UserPublic(BaseModel):
     phone_number: str | None = None
     created_at: datetime
     updated_at: datetime
+    is_social: bool
+    social_provider: str | None = None
 
     class Config:
         from_attributes = True

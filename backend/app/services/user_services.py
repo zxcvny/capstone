@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 from sqlalchemy import update 
 from datetime import datetime, timedelta, timezone
 
@@ -16,7 +16,12 @@ import uuid
 class UserService:
     async def get_user_by_id(self, db: AsyncSession, user_id: uuid.UUID) -> User | None:
         """ID로 마스터 사용자 조회"""
-        result = await db.execute(select(User).where(User.user_id == user_id))
+        stmt = (
+            select(User)
+            .where(User.user_id == user_id)
+            .options(selectinload(User.social_accounts)) 
+        )
+        result = await db.execute(stmt)
         return result.scalars().first()
     
     async def get_user_by_username_or_email(self, db: AsyncSession, username_or_email: str) -> User | None:
