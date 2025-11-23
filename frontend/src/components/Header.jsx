@@ -10,7 +10,7 @@ function Header() {
     const [showResults, setShowResults] = useState(false);
     const navigate = useNavigate();
     const searchRef = useRef(null);
-    const { user, logout } = useAuth(); // user 정보와 로그아웃 함수 가져오기
+    const { user, logout } = useAuth();
 
     useEffect(() => {
         const fetchStocks = async () => {
@@ -19,6 +19,7 @@ function Header() {
                 return;
             }
             try {
+                // 백엔드에서 market 정보가 포함된 JSON을 반환함
                 const response = await fetch(`http://localhost:8000/stocks/search?keyword=${keyword}`);
                 if (response.ok) {
                     const data = await response.json();
@@ -55,9 +56,9 @@ function Header() {
         navigate(`/stock/${code}`);
     };
 
-    // 숫자 포맷팅 함수 (콤마 추가)
     const formatPrice = (price) => {
         if (!price || price === "-") return "-";
+        // 백엔드에서 이미 원화 정수로 변환해서 보내주므로 콤마만 찍으면 됨
         return parseInt(price).toLocaleString();
     };
 
@@ -84,13 +85,26 @@ function Header() {
                     {showResults && results.length > 0 && (
                         <ul className="search-results-dropdown">
                             {results.map((stock) => {
-                                // 등락률에 따른 색상 클래스 결정
                                 const rate = parseFloat(stock.change_rate);
                                 const rateClass = rate > 0 ? "up" : rate < 0 ? "down" : "";
                                 
+                                // [수정] 마켓 정보(KR/NAS)에 따라 라벨 표시
+                                const marketLabel = stock.market === "NAS" ? "미국" : "국내";
+                                const marketStyle = {
+                                    fontSize: "10px",
+                                    padding: "2px 4px",
+                                    borderRadius: "4px",
+                                    marginRight: "6px",
+                                    backgroundColor: stock.market === "NAS" ? "#e3f2fd" : "#f1f3f5",
+                                    color: stock.market === "NAS" ? "#1976d2" : "#495057",
+                                    fontWeight: "bold"
+                                };
+
                                 return (
                                     <li key={stock.code} onClick={() => handleStockClick(stock.code)}>
                                         <div className="search-result-left">
+                                            {/* 마켓 뱃지 추가 */}
+                                            <span style={marketStyle}>{marketLabel}</span>
                                             <span className="stock-name">{stock.name}</span>
                                             <span className="stock-code">({stock.code})</span>
                                         </div>
@@ -110,14 +124,13 @@ function Header() {
                 </div>
 
                 <div className="header-login">
-                    {/* user가 있으면 이름 표시, 없으면 로그인 버튼 표시 */}
                     {user ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <span style={{ fontWeight: 'bold', color: '#212529' }}>{user.name}님</span>
                             <button 
                                 onClick={logout} 
                                 className="login-btn"
-                                style={{ cursor: 'pointer' }} // 스타일 추가 필요 시 css로 이동
+                                style={{ cursor: 'pointer' }}
                             >
                                 로그아웃
                             </button>
