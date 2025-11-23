@@ -38,7 +38,7 @@ async def search_stocks(keyword: str = Query(..., min_length=1)):
     - 우선순위 2: 시가총액 (높은 순)
     """
     # 1. 텍스트 유사도로 후보군 조회 (넉넉하게 30개 정도 가져옴)
-    candidates = stock_info_service.search_stocks(keyword, limit=30)
+    candidates = stock_info_service.search_stocks(keyword, limit=10)
     if not candidates:
         return []
 
