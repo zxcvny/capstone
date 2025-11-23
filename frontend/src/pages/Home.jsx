@@ -204,7 +204,7 @@ function Home() {
                             <tr 
                                 key={stock.code}
                                 className="stock-row"
-                                onClick={() => navigate(`/stock/${stock.code}`)}
+                                onClick={() => {const targetMarket = marketType === 'DOMESTIC' ? 'KR' : 'NAS';navigate(`/stock/${targetMarket}/${stock.code}`);}}
                             >
                                 <td>
                                     <span 

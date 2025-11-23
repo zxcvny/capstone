@@ -1,6 +1,7 @@
 import httpx
 import logging
 import time
+from datetime import datetime, timedelta
 from app.services.kis_auth import kis_auth
 from app.core.config import settings
 
@@ -164,7 +165,7 @@ class KisDataService:
             path = "/uapi/overseas-stock/v1/ranking/updown-rate"
             gubn_code = "1" if rank_type == "rise" else "0"
             # 급등락 조회 시 거래량 100주 이상 조건 추가 (동전주 필터링)
-            params.update({"GUBN": gubn_code, "NDAY": "0", "VOL_RANG": "1"})
+            params.update({"GUBN": gubn_code, "NDAY": "0", "VOL_RANG": "0"})
         else:
             return []
 
@@ -357,4 +358,308 @@ class KisDataService:
             "amount": amount
         }
 
+    async def get_stock_detail(self, market: str, code: str):
+        """
+        종목 상세 정보 조회
+        - 시가총액(market_cap)은 모두 '억 원' 단위로 통일하여 반환합니다.
+        """
+        data = {
+            "market": market, "code": code, "price": "0", "diff": "0",
+            "change_rate": "0.00", "market_cap": "0", "shares_outstanding": "0",
+            "per": "0.00", "pbr": "0.00", "eps": "0", "bps": "0",
+            "open_date": "-", "vol_power": "0.00"
+        }
+        try:
+            token = await kis_auth.get_access_token()
+            headers = {
+                "content-type": "application/json",
+                "authorization": f"Bearer {token}",
+                "appkey": settings.KIS_APP_KEY,
+                "appsecret": settings.KIS_SECRET_KEY
+            }
+
+            if market == "KR":
+                headers["tr_id"] = "FHKST01010100"
+                params = { "fid_cond_mrkt_div_code": "J", "fid_input_iscd": code }
+                path = "/uapi/domestic-stock/v1/quotations/inquire-price"
+                async with httpx.AsyncClient() as client:
+                    res = await client.get(f"{settings.KIS_BASE_URL}{path}", headers=headers, params=params)
+                    if res.status_code == 200:
+                        out = res.json().get('output', {})
+                        data.update({
+                            "price": out.get('stck_prpr'), "diff": out.get('prdy_vrss'),
+                            "change_rate": out.get('prdy_ctrt'), 
+                            "market_cap": out.get('hts_avls'), # 국내는 이미 '억' 단위
+                            "shares_outstanding": out.get('lstn_stcn'), "per": out.get('per'),
+                            "pbr": out.get('pbr'), "eps": out.get('eps'), "bps": out.get('bps'),
+                            "vol_power": out.get('vol_tnrt')
+                        })
+            else:
+                # [해외] 데이터 직접 계산 및 환율 적용
+                headers["tr_id"] = "HHDFS76200200"
+                params = { "AUTH": "", "EXCD": "NAS", "SYMB": code }
+                path = "/uapi/overseas-price/v1/quotations/price-detail"
+                async with httpx.AsyncClient() as client:
+                    res = await client.get(f"{settings.KIS_BASE_URL}{path}", headers=headers, params=params)
+                    if res.status_code == 200:
+                        out = res.json().get('output', {})
+                        rate = await self.get_exchange_rate()
+                        
+                        # 1. 가격 데이터 추출 (달러)
+                        last = float(out.get('last') or 0)  # 현재가
+                        base = float(out.get('base') or 0)  # 전일종가
+                        tomv = float(out.get('tomv') or 0)  # 시가총액
+                        eps_usd = float(out.get('epsx') or 0) # EPS
+                        bps_usd = float(out.get('bpsx') or 0) # BPS
+
+                        # 2. 등락률 및 전일대비 직접 계산 (API 미제공 대비)
+                        diff_usd = last - base
+                        if base > 0:
+                            change_rate = f"{((diff_usd / base) * 100):.2f}"
+                        else:
+                            change_rate = "0.00"
+
+                        # 3. 원화 환산
+                        price_krw = int(last * rate)
+                        diff_krw = int(diff_usd * rate)
+                        market_cap_krw_eok = (tomv * rate) / 100000000 # 억 단위
+                        eps_krw = int(eps_usd * rate)
+                        bps_krw = int(bps_usd * rate)
+
+                        data.update({
+                            "price": str(price_krw),
+                            "diff": str(diff_krw),
+                            "change_rate": str(change_rate),
+                            "market_cap": str(int(market_cap_krw_eok)),
+                            "shares_outstanding": out.get('shar') or "0",
+                            "per": out.get('perx') or "0.00",
+                            "pbr": out.get('pbrx') or "0.00",
+                            "eps": str(eps_krw),  # 원화로 변환됨
+                            "bps": str(bps_krw)   # 원화로 변환됨
+                        })
+        except Exception as e:
+            logger.error(f"Detail Error: {e}")
+        return data
+
+    # ---------------------------------------------------------
+    # [차트 조회] (이전 코드와 동일)
+    # ---------------------------------------------------------
+    async def get_stock_chart(self, market: str, code: str, period: str):
+        chart_data = []
+        try:
+            token = await kis_auth.get_access_token()
+            headers = {
+                "content-type": "application/json",
+                "authorization": f"Bearer {token}",
+                "appkey": settings.KIS_APP_KEY,
+                "appsecret": settings.KIS_SECRET_KEY
+            }
+            
+            today = datetime.now().strftime("%Y%m%d")
+            target_start_date = (datetime.now() - timedelta(days=365*2)).strftime("%Y%m%d")
+            is_minute = "m" in period
+
+            if market == "KR":
+                if is_minute:
+                    headers["tr_id"] = "FHKST03010230" 
+                    path = "/uapi/domestic-stock/v1/quotations/inquire-time-dailychartprice"
+                    curr_date = today
+                    curr_time = "153000" 
+                    for _ in range(100): 
+                        params = {"FID_COND_MRKT_DIV_CODE": "J", "FID_INPUT_ISCD": code, "FID_INPUT_DATE_1": curr_date, "FID_INPUT_HOUR_1": curr_time, "FID_PW_DATA_INCU_YN": "Y", "FID_FAKE_TICK_INCU_YN": "N"}
+                        async with httpx.AsyncClient() as client:
+                            res = await client.get(f"{settings.KIS_BASE_URL}{path}", headers=headers, params=params)
+                            if res.status_code != 200: break
+                            items = res.json().get('output2', [])
+                            if not items: break
+                            for item in items:
+                                d, t, c = item.get('stck_bsop_date'), item.get('stck_cntg_hour'), item.get('stck_prpr')
+                                if d and t and c:
+                                    chart_data.append({"time": f"{d[:4]}-{d[4:6]}-{d[6:8]} {t[:2]}:{t[2:4]}:{t[4:6]}", "open": float(item['stck_oprc']), "high": float(item['stck_hgpr']), "low": float(item['stck_lwpr']), "close": float(c), "volume": float(item['cntg_vol'] or 0)})
+                            last = items[-1]
+                            curr_date, curr_time = last.get('stck_bsop_date'), last.get('stck_cntg_hour')
+                            if curr_date < (datetime.now() - timedelta(days=365)).strftime("%Y%m%d"): break
+                    if period != '1m' and period != 'minute':
+                        interval = int(period.replace('m', ''))
+                        chart_data = self._aggregate_minute_data(chart_data, interval)
+                else:
+                    headers["tr_id"] = "FHKST03010100"
+                    path = "/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice"
+                    p_code = {"D": "D", "W": "W", "M": "M", "Y": "Y"}.get(period, "D")
+                    curr_end_date = today
+                    for _ in range(10): 
+                        params = {"FID_COND_MRKT_DIV_CODE": "J", "FID_INPUT_ISCD": code, "FID_INPUT_DATE_1": target_start_date, "FID_INPUT_DATE_2": curr_end_date, "FID_PERIOD_DIV_CODE": p_code, "FID_ORG_ADJ_PRC": "1"}
+                        async with httpx.AsyncClient() as client:
+                            res = await client.get(f"{settings.KIS_BASE_URL}{path}", headers=headers, params=params)
+                            if res.status_code != 200: break
+                            items = res.json().get('output2', [])
+                            if not items: break
+                            for item in items:
+                                d = item.get('stck_bsop_date')
+                                if d: chart_data.append({"time": f"{d[:4]}-{d[4:6]}-{d[6:8]}", "open": float(item['stck_oprc']), "high": float(item['stck_hgpr']), "low": float(item['stck_lwpr']), "close": float(item['stck_clpr']), "volume": float(item['acml_vol'] or 0)})
+                            if items: curr_end_date = (datetime.strptime(items[-1]['stck_bsop_date'], "%Y%m%d") - timedelta(days=1)).strftime("%Y%m%d")
+                            if curr_end_date < target_start_date or len(items) < 100: break
+            else:
+                market_code = "NAS"
+                if is_minute:
+                    nmin = period.replace('m', '')
+                    headers["tr_id"] = "HHDFS76950200"
+                    path = "/uapi/overseas-price/v1/quotations/inquire-time-itemchartprice"
+                    next_key = ""
+                    for _ in range(30):
+                        params = {"AUTH":"", "EXCD":market_code, "SYMB":code, "NMIN":nmin, "PINC":"1", "NEXT":"1" if next_key else "", "NREC":"120", "KEYB":next_key}
+                        async with httpx.AsyncClient() as client:
+                            res = await client.get(f"{settings.KIS_BASE_URL}{path}", headers=headers, params=params)
+                            if res.status_code != 200: break
+                            body = res.json()
+                            items = body.get('output2', [])
+                            if not items: break
+                            for item in items:
+                                d, t = item.get('kymd'), item.get('khms')
+                                if d and t: chart_data.append({"time": f"{d[:4]}-{d[4:6]}-{d[6:8]} {t[:2]}:{t[2:4]}:{t[4:6]}", "open": float(item['open']), "high": float(item['high']), "low": float(item['low']), "close": float(item['last']), "volume": float(item['evol'] or 0)})
+                            if body.get('output1', {}).get('next') == "1":
+                                next_key = (items[-1].get('xymd') or "") + (items[-1].get('xhms') or "")
+                            else: break
+                else:
+                    headers["tr_id"] = "HHDFS76240000"
+                    path = "/uapi/overseas-price/v1/quotations/dailyprice"
+                    gubn = {"D":"0", "W":"1", "M":"2", "Y":"2"}.get(period, "0")
+                    curr_base_date = today
+                    for _ in range(5):
+                        params = {"AUTH":"", "EXCD":market_code, "SYMB":code, "GUBN":gubn, "BYMD":curr_base_date, "MODP":"1"}
+                        async with httpx.AsyncClient() as client:
+                            res = await client.get(f"{settings.KIS_BASE_URL}{path}", headers=headers, params=params)
+                            if res.status_code != 200: break
+                            items = res.json().get('output2', [])
+                            if not items: break
+                            for item in items:
+                                d = item.get('xymd')
+                                if d: chart_data.append({"time": f"{d[:4]}-{d[4:6]}-{d[6:8]}", "open": float(item['open']), "high": float(item['high']), "low": float(item['low']), "close": float(item['clos']), "volume": float(item['tvol'] or 0)})
+                            if items: curr_base_date = (datetime.strptime(items[-1].get('xymd'), "%Y%m%d") - timedelta(days=1)).strftime("%Y%m%d")
+                            if curr_base_date < target_start_date: break
+
+            chart_data.sort(key=lambda x: x['time'])
+            unique_data = []
+            seen = set()
+            for item in chart_data:
+                if item['time'] not in seen:
+                    unique_data.append(item)
+                    seen.add(item['time'])
+            return unique_data
+
+        except Exception as e:
+            logger.error(f"Chart Error: {e}")
+            return chart_data
+
+    def _aggregate_minute_data(self, data, interval):
+        if not data: return []
+        data.sort(key=lambda x: x['time'])
+        aggregated = []
+        current_bucket = None
+        for item in data:
+            dt = datetime.strptime(item['time'], "%Y-%m-%d %H:%M:%S")
+            minute_of_day = dt.hour * 60 + dt.minute
+            bucket_index = minute_of_day // interval
+            date_str = dt.strftime("%Y-%m-%d")
+            bucket_key = (date_str, bucket_index)
+            if (current_bucket is None) or (current_bucket['key'] != bucket_key):
+                if current_bucket: aggregated.append(current_bucket['data'])
+                start_h = (bucket_index * interval) // 60
+                start_m = (bucket_index * interval) % 60
+                start_time_str = f"{date_str} {start_h:02}:{start_m:02}:00"
+                current_bucket = {'key': bucket_key, 'data': {"time": start_time_str, "open": item['open'], "high": item['high'], "low": item['low'], "close": item['close'], "volume": item['volume']}}
+            else:
+                b = current_bucket['data']
+                b['high'] = max(b['high'], item['high'])
+                b['low'] = min(b['low'], item['low'])
+                b['close'] = item['close']
+                b['volume'] += item['volume']
+        if current_bucket: aggregated.append(current_bucket['data'])
+        return aggregated
+    
+  # =========================================================
+    # 2. [수정됨] 실시간 체결 내역 (시세) - 최근 체결 API 사용
+    # =========================================================
+    async def get_recent_trades(self, market: str, code: str):
+        trades_data = []
+        vol_power = "0.00"
+
+        try:
+            token = await kis_auth.get_access_token()
+            headers = {
+                "content-type": "application/json",
+                "authorization": f"Bearer {token}",
+                "appkey": settings.KIS_APP_KEY,
+                "appsecret": settings.KIS_SECRET_KEY
+            }
+
+            if market == "KR":
+                # [STEP 1] 현재가 API에서 체결강도 확보
+                headers["tr_id"] = "FHKST01010100"
+                params = { "fid_cond_mrkt_div_code": "J", "fid_input_iscd": code }
+                async with httpx.AsyncClient() as client:
+                    res = await client.get(f"{settings.KIS_BASE_URL}/uapi/domestic-stock/v1/quotations/inquire-price", headers=headers, params=params)
+                    if res.status_code == 200:
+                        out = res.json().get('output', {})
+                        vol_power = out.get('vol_tnrt', '0.00')
+
+                # [STEP 2] 최근 체결 API (FHKST01010300) - 시간 무관하게 최신 30건 조회
+                headers["tr_id"] = "FHKST01010300" 
+                path = "/uapi/domestic-stock/v1/quotations/inquire-ccnl"
+                
+                async with httpx.AsyncClient() as client:
+                    res = await client.get(f"{settings.KIS_BASE_URL}{path}", headers=headers, params=params)
+                    if res.status_code == 200:
+                        items = res.json().get('output', [])
+                        for item in items:
+                            trades_data.append({
+                                "time": item['stck_cntg_hour'],
+                                "price": item['stck_prpr'],
+                                "diff": item['prdy_vrss'],
+                                "rate": item['prdy_ctrt'],
+                                "volume": item['cntg_vol'],
+                                "total_vol": "-", # 이 API는 누적거래량 안 줌 (화면엔 '-' 표시)
+                                "vol_power": vol_power # 개별 틱 체결강도는 없으므로 현재값 공통 사용
+                            })
+
+            else:
+                # [해외] 최근 체결 API
+                headers["tr_id"] = "HHDFS76200300" 
+                path = "/uapi/overseas-price/v1/quotations/inquire-ccnl"
+                params = { "AUTH": "", "EXCD": "NAS", "SYMB": code }
+
+                async with httpx.AsyncClient() as client:
+                    res = await client.get(f"{settings.KIS_BASE_URL}{path}", headers=headers, params=params)
+                    if res.status_code == 200:
+                        items = res.json().get('output1', [])
+                        rate = await self.get_exchange_rate()
+                        
+                        if items: vol_power = items[0].get('vpow', '0.00')
+
+                        for item in items:
+                            price_krw = int(float(item['last']) * rate)
+                            
+                            # 부호 처리 (1,2:상승 / 4,5:하락)
+                            sign = item.get('sign')
+                            diff_usd = float(item.get('diff') or 0)
+                            if sign in ['4', '5']: 
+                                diff_usd = -abs(diff_usd)
+                            
+                            trades_data.append({
+                                "time": item['khms'], 
+                                "price": str(price_krw),
+                                "diff": str(int(diff_usd * rate)),
+                                "rate": item.get('rate', '0.00'),
+                                "volume": item['evol'],
+                                "total_vol": item.get('tvol', '0'),
+                                "vol_power": item.get('vpow', vol_power)
+                            })
+
+        except Exception as e:
+            logger.error(f"Trades Error: {e}")
+        
+        return {
+            "trades": trades_data,
+            "vol_power": vol_power
+        }
 kis_data = KisDataService()
