@@ -50,10 +50,9 @@ function Header() {
         };
     }, []);
 
-    const handleStockClick = (code) => {
-        setKeyword("");
-        setShowResults(false);
-        navigate(`/stock/${code}`);
+    const handleStockClick = (market, code) => {
+        // navigate('/stock-detail/' + market + '/' + code);
+         navigate(`stock/${market}/${code}`); // 또는 API 호출
     };
 
     const formatPrice = (price) => {
@@ -107,7 +106,7 @@ function Header() {
                                 };
 
                                 return (
-                                    <li key={stock.code} onClick={() => handleStockClick(stock.code)}>
+                                    <li key={stock.code} onClick={() => handleStockClick(stock.market, stock.code)}>
                                         <div className="search-result-left">
                                             {/* 마켓 뱃지 추가 */}
                                             <span style={marketStyle}>{marketLabel}</span>
