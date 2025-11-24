@@ -594,14 +594,30 @@ class KisDataService:
             }
 
             if market == "KR":
-                # [STEP 1] 현재가 API에서 체결강도 확보
-                headers["tr_id"] = "FHKST01010100"
-                params = { "fid_cond_mrkt_div_code": "J", "fid_input_iscd": code }
+                # [STEP 1] '주식현재가 체결' API로 변경 (여기에 체결강도가 있습니다)
+                headers["tr_id"] = "FHKST01010300"  # <-- TR_ID 변경 필수!
+                
+                # URL 변경: inquire-price -> inquire-ccnl
+                url = f"{settings.KIS_BASE_URL}/uapi/domestic-stock/v1/quotations/inquire-ccnl"
+                
+                params = { 
+                    "fid_cond_mrkt_div_code": "J", 
+                    "fid_input_iscd": code 
+                }
+                
                 async with httpx.AsyncClient() as client:
-                    res = await client.get(f"{settings.KIS_BASE_URL}/uapi/domestic-stock/v1/quotations/inquire-price", headers=headers, params=params)
+                    res = await client.get(url, headers=headers, params=params)
+                    
                     if res.status_code == 200:
-                        out = res.json().get('output', {})
-                        vol_power = out.get('vol_tnrt', '0.00')
+                        # 이 API의 output은 리스트(Array) 형태입니다.
+                        # 가장 최신 체결 건(0번 인덱스)을 가져옵니다.
+                        out_list = res.json().get('output', [])
+                        
+                        if out_list and len(out_list) > 0:
+                            # 'tday_rltv'가 REST API에서의 '당일 체결강도' 필드명입니다.
+                            vol_power = out_list[0].get('tday_rltv', '0.00')
+                        else:
+                            vol_power = '0.00'
 
                 # [STEP 2] 최근 체결 API (FHKST01010300) - 시간 무관하게 최신 30건 조회
                 headers["tr_id"] = "FHKST01010300" 
