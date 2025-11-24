@@ -27,7 +27,6 @@ def get_trading_dates():
     
     return today_str, prev_date_str
 
-# [1] 랭킹 조회 (기존 유지)
 @router.get("/rank/{rank_type}")
 async def get_stock_ranking(rank_type: str, market_type: str = "DOMESTIC"):
     """
@@ -45,12 +44,18 @@ async def get_stock_ranking(rank_type: str, market_type: str = "DOMESTIC"):
         
         d_data, o_data = await asyncio.gather(d_task, o_task)
 
-        # 국내 주식 이름 매핑
+        # 국내 주식 이름 매핑 및 마켓 정보 추가
         for item in d_data:
             name = stock_info_service.get_name(item['code'])
             if name:
                 item['name'] = name
+            item['market'] = "KR"  # [수정] 국내 주식임을 식별하기 위해 market 필드 추가
         
+        # 해외 주식 마켓 정보 확인 (혹시 API에서 안 줄 경우를 대비해 안전장치)
+        for item in o_data:
+             if 'market' not in item:
+                 item['market'] = "NAS" # 또는 해당 해외 시장 코드
+
         # 데이터 병합
         combined_data = d_data + o_data
 
@@ -68,27 +73,26 @@ async def get_stock_ranking(rank_type: str, market_type: str = "DOMESTIC"):
             combined_data.sort(key=lambda x: get_value(x, 'change_rate'), reverse=False)
         elif rank_type in ["volume", "amount"]:
             combined_data.sort(key=lambda x: get_value(x, rank_type), reverse=True)
-        # cap(시가총액) 등 기타의 경우 기본적으로 큰 순서대로 정렬되어 있다고 가정하거나 
-        # 필요 시 market_cap 기준으로 정렬 추가 가능
-        if rank_type == "cap":
-             combined_data.sort(key=lambda x: get_value(x, 'market_cap') if 'market_cap' in x else get_value(x, 'amount'), reverse=True) # amount가 아닌 시총값 필요하지만 API 특성상 주의
         
-        return combined_data[:30] # [수정] 30개로 제한
+        if rank_type == "cap":
+             combined_data.sort(key=lambda x: get_value(x, 'market_cap') if 'market_cap' in x else get_value(x, 'amount'), reverse=True)
+        
+        return combined_data[:30] 
 
     elif market_type == "OVERSEAS":
-        # [수정] 해외 주식 단독 조회 시에도 'cap' -> 'market_cap' 자동 변환 적용
+        # [수정] 해외 주식 단독 조회
         raw_data = await kis_data.get_overseas_ranking_data(overseas_rank_type, market_code="NAS")
         return raw_data
 
-    if market_type == "OVERSEAS":
-        return await kis_data.get_overseas_ranking_data(rank_type, market_code="NAS")
     else:
+        # [수정] 국내 주식 단독 조회 (else block)
         raw_data = await kis_data.get_ranking_data(rank_type)
         final_results = []
         for item in raw_data:
             name = stock_info_service.get_name(item['code'])
             if name:
                 item['name'] = name
+            item['market'] = "KR" # [수정] 단독 조회시에도 market 필드 추가 권장
             final_results.append(item)
         return final_results
 

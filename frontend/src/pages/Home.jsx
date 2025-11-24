@@ -204,7 +204,12 @@ function Home() {
                             <tr 
                                 key={stock.code}
                                 className="stock-row"
-                                onClick={() => {const targetMarket = marketType === 'DOMESTIC' ? 'KR' : 'NAS';navigate(`/stock/${targetMarket}/${stock.code}`);}}
+                                onClick={() => {
+                                    // 1순위: stock 데이터 자체에 market 정보가 있으면 사용 (백엔드에서 보내준 값)
+                                    // 2순위: 없다면 현재 탭(marketType)을 보고 판단 ('DOMESTIC'이면 'KR', 아니면 'NAS')
+                                    const targetMarket = stock.market || (marketType === 'DOMESTIC' ? 'KR' : 'NAS');
+                                    navigate(`/stock/${targetMarket}/${stock.code}`);
+                                }}
                             >
                                 <td>
                                     <span 
