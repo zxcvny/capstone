@@ -774,10 +774,8 @@ class KisDataService:
         # 마지막 버킷 추가
         if current_bucket: aggregated.append(current_bucket['data'])
         return aggregated
-  # =========================================================
-    # 2. [최적화됨] 실시간 체결 내역 (초기 로딩용)
-    # - 불필요한 현재가 조회(FHKST01010100) 로직 삭제
-    # - FHPST01060000 하나로 체결강도까지 해결
+# =========================================================
+    # 2. [최종_진짜_완성] 해외 체결 (날짜 필터링 + 시간 필터링 + 정렬)
     # =========================================================
     async def get_recent_trades(self, market: str, code: str):
         trades_data = []
@@ -792,19 +790,13 @@ class KisDataService:
                 "appsecret": settings.KIS_SECRET_KEY
             }
 
+            # [1] 국내 주식 (기존 유지)
             if market == "KR":
-                # [삭제됨] 여기서 FHKST01010100 호출하던 부분 제거함 (속도 향상)
-
-                # 시간대별 체결 조회 (이것만 있으면 됨)
                 headers["tr_id"] = "FHPST01060000" 
                 path = "/uapi/domestic-stock/v1/quotations/inquire-time-itemconclusion" 
                 curr_time = datetime.now().strftime("%H%M%S")
 
-                params = {
-                    "FID_COND_MRKT_DIV_CODE": "J",
-                    "FID_INPUT_ISCD": code,
-                    "FID_INPUT_HOUR_1": curr_time 
-                }
+                params = { "FID_COND_MRKT_DIV_CODE": "J", "FID_INPUT_ISCD": code, "FID_INPUT_HOUR_1": curr_time }
                 
                 async with httpx.AsyncClient() as client:
                     res = await client.get(f"{settings.KIS_BASE_URL}{path}", headers=headers, params=params)
@@ -812,12 +804,10 @@ class KisDataService:
                     if res.status_code == 200:
                         body = res.json()
                         items = body.get('output2')
-                        
                         if items is None: items = []
                         if isinstance(items, dict): items = [items]
                         
                         if isinstance(items, list):
-                            # 첫 번째 항목(가장 최신)에서 체결강도 추출
                             if len(items) > 0:
                                 vol_power = items[0].get('tday_rltv') or "0.00"
 
@@ -831,11 +821,9 @@ class KisDataService:
                                     "total_vol": item.get('acml_vol') or "0", 
                                     "vol_power": item.get('tday_rltv') or vol_power 
                                 })
-                        else:
-                            logger.warning(f"Unexpected API response: {body}")
 
+            # [2] 해외 주식 (날짜 확인 로직 추가)
             else:
-                # [해외 주식] (기존 유지 - 해외는 원래 한 번만 호출했음)
                 headers["tr_id"] = "HHDFS76200300" 
                 path = "/uapi/overseas-price/v1/quotations/inquire-ccnl"
                 params = { "AUTH": "", "EXCD": "NAS", "SYMB": code }
@@ -847,12 +835,21 @@ class KisDataService:
                         if items is None: items = []
                         
                         rate = await self.get_exchange_rate()
-                        # 해외 체결강도 안전장치
                         if items and isinstance(items, list) and len(items) > 0: 
                             vol_power = items[0].get('vpow') or "0.00"
 
-                        if isinstance(items, list):
+                        if isinstance(items, list) and len(items) > 0:
+                            # [★핵심 1] 리스트 중 '가장 최신 날짜(xymd)' 찾기
+                            # API는 보통 최신순으로 주므로 첫 번째 데이터의 날짜가 최신일 확률이 높음
+                            # 하지만 안전하게 전체 스캔해서 max 날짜를 찾음
+                            latest_date = max([item.get('xymd', '00000000') for item in items])
+                            
+                            temp_list = []
                             for item in items:
+                                # [★핵심 2] 날짜 필터링: 최신 날짜가 아니면 버림 (어제 데이터 삭제)
+                                if item.get('xymd') != latest_date:
+                                    continue
+
                                 price_usd = float(item.get('last') or 0)
                                 price_krw = int(price_usd * rate)
                                 
@@ -860,15 +857,38 @@ class KisDataService:
                                 diff_usd = float(item.get('diff') or 0)
                                 if sign in ['4', '5']: diff_usd = -abs(diff_usd)
                                 
-                                trades_data.append({
-                                    "time": item.get('khms') or "000000", 
+                                kst_time_str = item.get('khms') or "000000"
+                                time_int = int(kst_time_str)
+
+                                # [★핵심 3] 시간 필터링: 정규장(23:30 ~ 06:00) 외 데이터 제외
+                                # 06시 00분 ~ 23시 30분 사이의 데이터(장전/장후)는 버림
+                                if 60000 < time_int < 233000:
+                                    continue
+
+                                # [★핵심 4] 정렬 키 생성 (자정 넘김 처리)
+                                # 06:00(아침) > 23:30(밤)이 되도록 새벽 시간에 가중치 부여
+                                if time_int <= 60000:
+                                    sort_key = time_int + 240000
+                                else:
+                                    sort_key = time_int
+
+                                temp_list.append({
+                                    "time": kst_time_str,
                                     "price": str(price_krw),
                                     "diff": str(int(diff_usd * rate)),
                                     "rate": item.get('rate') or "0.00",
                                     "volume": item.get('evol') or "0",
                                     "total_vol": item.get('tvol') or "0",
-                                    "vol_power": item.get('vpow') or vol_power
+                                    "vol_power": item.get('vpow') or vol_power,
+                                    "_sort_key": sort_key
                                 })
+                            
+                            # 내림차순 정렬 (최신순)
+                            temp_list.sort(key=lambda x: x['_sort_key'], reverse=True)
+                            
+                            for t in temp_list[:30]:
+                                del t['_sort_key']
+                                trades_data.append(t)
 
         except Exception as e:
             logger.error(f"Trades Error: {e}")
