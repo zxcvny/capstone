@@ -320,3 +320,33 @@ button.active {
     font-size: 0.9rem;
     color: #666;
 }
+
+/* 차트 래퍼: 기준점 역할 */
+.chart-wrapper {
+    position: relative; /* 자식 absolute 배치의 기준 */
+}
+
+/* 라벨 공통 스타일 */
+.chart-watermark {
+    position: absolute;
+    left: 12px;           /* 왼쪽 여백 */
+    z-index: 20;          /* 차트(canvas)보다 위에 표시 */
+    font-size: 11px;
+    font-weight: 700;
+    color: #888;          /* 은은한 회색 */
+    background: rgba(255, 255, 255, 0.7); /* 배경 살짝 투명하게 */
+    padding: 2px 6px;
+    border-radius: 4px;
+    pointer-events: none; /* 중요: 마우스 이벤트를 통과시켜 차트 조작 가능하게 함 */
+    border: 1px solid #eee;
+}
+
+/* 가격 라벨 위치 (상단) */
+.label-price {
+    top: 10px;
+}
+
+/* 거래량 라벨 위치 (하단 80% 지점 - 우리가 설정한 scaleMargin과 일치시킴) */
+.label-volume {
+    top: 81%; /* 거래량 차트가 80%부터 시작하므로 그 바로 아래 */
+}

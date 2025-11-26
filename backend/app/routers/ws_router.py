@@ -25,3 +25,23 @@ async def top_volume_ws(websocket: WebSocket):
     finally:
         # 어떤 이유로든 루프가 끝나면 연결 해제 처리
         kis_ws_manager.disconnect_client(websocket)
+
+@router.websocket("/stocks/{code}")
+async def stock_ws(websocket: WebSocket, code: str):
+    # 1. 매니저를 통해 연결 및 구독 등록
+    await kis_ws_manager.connect_client(websocket, code)
+    
+    try:
+        while True:
+            # 클라이언트 메시지 대기 (연결 유지용)
+            await websocket.receive_text()
+            
+    except WebSocketDisconnect:
+        logger.info(f"✅ [{code}] 클라이언트 연결 해제")
+        # 2. 연결 끊김 처리 (구독 해제 등)
+        await kis_ws_manager.disconnect_client(websocket, code)
+        
+    except Exception as e:
+        logger.error(f"⛔ 소켓 에러 [{code}]: {e}")
+        await kis_ws_manager.disconnect_client(websocket, code)
+
