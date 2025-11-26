@@ -1,18 +1,22 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom'; // Link 추가
+import { useNavigate, Link } from 'react-router-dom';
+
 import { FaRegHeart, FaHeart } from "react-icons/fa";
-import { useAuth } from "../context/AuthContext"; // AuthContext 추가
+
+import { useAuth } from "../context/AuthContext";
+import axios from '../lib/axios';
+
 import "../styles/Home.css";
 
 function Home() {
     const navigate = useNavigate();
-    const { user } = useAuth(); // 사용자 정보 가져오기
+    const { user } = useAuth();
+
     const [marketType, setMarketType] = useState('ALL');
     const [rankType, setRankType] = useState('volume');
     const [stockList, setStockList] = useState([]);
     const [favorites, setFavorites] = useState(new Set());
 
-    // ... (기존 isMarketOpen, fetchFavorites, fetchRankings 로직 유지) ...
     const isMarketOpen = () => {
         const now = new Date();
         const day = now.getDay();
@@ -30,32 +34,48 @@ function Home() {
         return (currentTime >= 2230 || currentTime < 500);
     };
 
+    // 관심 목록 가져오기
     const fetchFavorites = async () => {
+        if (!user) return;
         try {
-            const token = localStorage.getItem('access_token'); // accessToken -> access_token 키 확인 필요 (AuthContext와 일치시킴)
-            if (!token) return;
-            const res = await fetch('http://localhost:8000/users/me/favorites', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setFavorites(new Set(data.map(item => item.stock_code)));
-            }
+            const res = await axios.get('/users/me/favorites');
+            setFavorites(new Set(res.data.map(item =>  item.stock_code)));
         } catch (e) { console.error(e); }
     };
 
+    // 관심 종목 토글
+    const toggleFavorite = async (e, code) => {
+        e.stopPropagation();
+        if (!user) return alert("로그인이 필요합니다.");
+        
+        const isFav = favorites.has(code);
+
+        try {
+            // 관심 종목에 있을 때 누르면 삭제 아니면 추가
+            if (isFav) {
+                await axios.delete(`/users/me/favorites/${code}`);
+            } else {
+                await axios.post(`/users/me/favorites/${code}`);
+            }
+
+            // 성공 시 UI 즉시 업데이트
+            const newFavs = new Set(favorites);
+            isFav ? newFavs.delete(code) : newFavs.add(code);
+            setFavorites(newFavs);
+
+        } catch (e) {
+            console.error(e);
+            alert("처리 중 오류가 발생했습니다.");
+        }
+    };
+
+    // 랭킹 가져오기
     const fetchRankings = async () => {
         try {
-            const res = await fetch(
-                `http://localhost:8000/stocks/rank/${rankType}?market_type=${marketType}`
-            );
-            if (res.ok) {
-                setStockList(await res.json());
-            } else {
-                setStockList([]);
-            }
+            const res = await axios.get(`/stocks/rank/${rankType}?market_type=${marketType}`);
+            setStockList(res.data);
         } catch (error) {
-            console.error("Fetch Error:", error);
+            console.error("Fatch Error:", error);
             setStockList([]);
         }
     };
@@ -70,31 +90,6 @@ function Home() {
         }
         return () => interval && clearInterval(interval);
     }, [rankType, marketType]);
-
-    const toggleFavorite = async (e, code) => {
-        e.stopPropagation();
-        const token = localStorage.getItem('access_token'); // access_token으로 통일
-
-        if (!token) return alert("로그인이 필요합니다.");
-
-        const isFav = favorites.has(code);
-        const method = isFav ? 'DELETE' : 'POST';
-
-        try {
-            const res = await fetch(
-                `http://localhost:8000/users/me/favorites/${code}`,
-                {
-                    method,
-                    headers: { 'Authorization': `Bearer ${token}` }
-                }
-            );
-            if (res.ok) {
-                const newFavs = new Set(favorites);
-                isFav ? newFavs.delete(code) : newFavs.add(code);
-                setFavorites(newFavs);
-            }
-        } catch (e) { console.error(e); }
-    };
 
     const formatNumber = (num) => num ? Number(num).toLocaleString() : '-';
 

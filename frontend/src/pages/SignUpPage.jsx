@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+
 import { FcGoogle } from "react-icons/fc";
 import { RiKakaoTalkFill } from "react-icons/ri";
-import Logo from "../components/Logo";
-import "../styles/AuthPage.css";
 
-const BASE_URL = "http://localhost:8000";
+import Logo from "../components/Logo";
+import axios from "../lib/axios";
+import "../styles/AuthPage.css";
 
 function SignUpPage() {
     const navigate = useNavigate();
@@ -68,22 +69,19 @@ function SignUpPage() {
         return () => clearTimeout(timer);
     }, [emailId, emailDomain, customDomain]);
 
+    // 중복 확인
     const checkExistence = async (field, value) => {
         try {
-            const response = await fetch(`${BASE_URL}/auth/check-availability`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ field, value }),
-            });
-            
-            const data = await response.json();
-            
+            const response = await axios.post("/auth/check-availability", { field, value });
+
             setAvailability(prev => ({
                 ...prev,
-                [field]: response.ok && data.available
+                [field]: response.data.available
             }));
+
         } catch (error) {
             console.error("중복 확인 에러:", error);
+            setAvailability(prev => ({ ...prev, [field]: false }));
         }
     };
 
@@ -98,7 +96,7 @@ function SignUpPage() {
 
     const isPhoneFilled = phone.part1.length === 3 && phone.part2.length >= 3 && phone.part3.length === 4;
 
-    // 인증번호 발송 요청 (백엔드 연동)
+    // 인증번호 발송 요청
     const sendVerification = async (e) => {
         e.preventDefault();
         if (!isPhoneFilled) return;
@@ -107,16 +105,8 @@ function SignUpPage() {
         const fullPhone = `${phone.part1}-${phone.part2}-${phone.part3}`;
 
         try {
-            // 백엔드에 인증번호 요청
-            const response = await fetch(`${BASE_URL}/auth/send-verification-code`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ phone_number: fullPhone }),
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                const serverCode = data.code; // 백엔드가 생성한 코드 (실제로는 SMS로 감)
+            const response = await axios.post("auth/send-verification-code", { phone_number: fullPhone });
+            const serverCode = response.data.code;
 
                 // 상태 초기화 및 인증 시작
                 setVerification(prev => ({
@@ -130,16 +120,12 @@ function SignUpPage() {
                     resendTimer: 60
                 }));
 
-                // 브라우저 Alert로 인증번호 표시 (요구사항)
                 alert(`[인증번호 발송]\n인증번호: ${serverCode}`);
-
                 startTimers();
-            } else {
-                alert("인증번호 발송에 실패했습니다. 잠시 후 다시 시도해주세요.");
-            }
+
         } catch (error) {
             console.error("인증번호 요청 에러:", error);
-            alert("서버 오류가 발생했습니다.");
+            alert("인증번호 발송 실패. 잠시 후 다시 시도해주세요.")
         }
     };
 
@@ -224,27 +210,19 @@ function SignUpPage() {
         };
 
         try {
-            const response = await fetch(`${BASE_URL}/auth/register`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(userData),
-            });
-
-            if (response.ok) {
-                alert("회원가입이 완료되었습니다! 로그인 해주세요.");
-                navigate("/login");
-            } else {
-                const errData = await response.json();
-                alert(errData.detail || "회원가입 실패");
-            }
+            await axios.post("/auth/register", userData);
+            alert("회원가입이 완료되었습니다! 로그인 해주세요.");
+            navigate("/login");
         } catch (error) {
             console.error("회원가입 요청 에러:", error);
-            alert("서버 오류가 발생했습니다.");
+            const msg = error.response?.data?.detail || "회원가입 실패";
+            alert(msg);
         }
     };
 
     const handleSocialLogin = (provider) => {
-        window.location.href = `${BASE_URL}/auth/${provider}/login`;
+        // axios.defaults.baseURL 사용 가능
+        window.location.href = `http://localhost:8000/auth/${provider}/login`;
     };
 
     return (

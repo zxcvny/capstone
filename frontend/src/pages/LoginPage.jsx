@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+
 import { FcGoogle } from "react-icons/fc";
 import { RiKakaoTalkFill } from "react-icons/ri";
-import Logo from "../components/Logo";
-import { useAuth } from "../context/AuthContext";
-import "../styles/AuthPage.css";
 
-const BASE_URL = "http://localhost:8000";
+import Logo from "../components/Logo";
+
+import { useAuth } from "../context/AuthContext";
+import axios from "../lib/axios";
+
+import "../styles/AuthPage.css";
 
 function LoginPage() {
     const navigate = useNavigate();
@@ -14,41 +17,56 @@ function LoginPage() {
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [loginError, setLoginError] = useState(""); // 에러 메시지 상태
+    const [loginError, setLoginError] = useState("");
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        setLoginError(""); // 기존 에러 초기화
+        setLoginError("");
 
         const formData = new URLSearchParams();
         formData.append("username", username);
         formData.append("password", password);
 
         try {
-            const response = await fetch(`${BASE_URL}/auth/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: formData,
+            const response = await axios.post("/auth/login", formData, {
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                }
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                console.log("Access Token:", data.access_token);
-                login(data.access_token);
-                navigate("/"); 
-            } else {
-                const errData = await response.json();
-                // 백엔드 에러 메시지 또는 기본 메시지 설정
-                setLoginError(errData.detail || "아이디 또는 비밀번호가 잘못되었습니다.");
-            }
+            // 로그인 성공 시
+            console.log("Access Token:", response.data.access_token)
+            login(response.data.access_token);
+            navigate("/");
+
         } catch (error) {
             console.error("로그인 요청 에러:", error);
-            setLoginError("서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+            // 에러 메시지
+            if (error.response && error.response.data) {
+                const detail = error.response.data.detail;
+
+                // 1. detail이 문자열이면 그대로 출력
+                if (typeof detail === "string") {
+                    setLoginError(detail);
+                } 
+                // 2. detail이 배열/객체면(FastAPI 기본 검증 에러) 첫 번째 메시지를 출력
+                else if (Array.isArray(detail) && detail.length > 0) {
+                    setLoginError(detail[0].msg || "입력값이 올바르지 않습니다."); // msg 또는 loc 등 확인
+                } 
+                // 3. 그 외의 경우
+                else {
+                    setLoginError(JSON.stringify(detail) || "로그인 실패");
+                }
+            } else {
+                setLoginError("서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+            }
         }
     };
 
+    // 소셜 로그인
     const handleSocialLogin = (provider) => {
-        window.location.href = `${BASE_URL}/auth/${provider}/login`;
+        // axios.defaults.baseURL 사용 가능
+        window.location.href = `http://localhost:8000/auth/${provider}/login`;
     };
 
     return (
