@@ -167,7 +167,7 @@ const StockDetail = () => {
                         {safeNum(detail.price).toLocaleString()}원
                     </h2>
                     <span className={`change ${getColor(detail.diff)}`}>
-                        <span className="date-label">{detail.date}</span>
+                        <span className="date-label">{detail.prev_date} 기준</span>
                         {safeNum(detail.diff) > 0 ? '▲' : '▼'} {Math.abs(safeNum(detail.diff)).toLocaleString()} ({detail.change_rate}%)
                     </span>
                 </div>
